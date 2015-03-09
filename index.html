@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>The Shenango Channel</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <style type='text/css'>
+      html, body {
+        width: 100%;
+        height: 100%;
+        min-width: 770px;
+        min-height: 745px;
+      }
+      #page_container {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        border-spacing: 0;
+        border-collapse: collapse;
+      }
+      #page_container tr {
+        height: 50%;
+      }
+      .row1 {
+        display:table-row;
+        height: 50%;
+        width: 100%;
+        background: white;
+      }
+      .row1 div {
+        display: table-cell;
+        width: 100%;
+      }
+      .row2 {
+        display: table-row;
+        height: 100%;
+        width: 100%;
+      }
+      .row2 div {
+        width: 50%;
+        height: 100%;
+        background: transparent;
+      }
+      .row2 div + div {
+        background: transparent;
+        width: 50%;
+        height: 100%;
+        position: static;
+        top: 0;
+        right: 0;
+      }
+      #map-canvas {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+
+    <link href="assets/timemachine-viewer/css/jquery-ui/smoothness/jquery-ui.custom.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="assets/timemachine-viewer/css/defaultUI.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="assets/css/application.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="assets/css/zoomify-bundle.css" media="screen" rel="stylesheet" type="text/css" />
+
+    <script src="assets/timemachine-viewer/js/jquery/jquery.min.js" type="text/javascript"></script>
+    <script src="assets/timemachine-viewer/js/jquery/jquery-ui.custom.min.js" type="text/javascript"></script>
+    <script src="assets/timemachine-viewer/js/jquery/plugins/mouse/jquery.mousewheel.min.js" type="text/javascript"></script>
+    <script src="assets/timemachine-viewer/js/org/gigapan/util.js" type="text/javascript"></script>
+    <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/videoset.js" type="text/javascript"></script>
+    <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/parabolicMotion.js" type="text/javascript"></script>
+    <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/timelapse.js" type="text/javascript"></script>
+    <script src="assets/timemachine-viewer/js/Math.uuid.js" type="text/javascript"></script>
+    <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/snaplapse.js" type="text/javascript"></script>
+    <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/snaplapseViewer.js" type="text/javascript"></script>
+    <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/defaultUI.js" type="text/javascript"></script>
+    <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/crossdomain_api.js" type="text/javascript"></script>
+    <script src="assets/timemachine-viewer/template_includes.js" type="text/javascript"></script>
+    <script src="assets/js/zoomify.js" type="text/javascript"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.3/jquery.xdomainrequest.min.js" type="text/javascript"></script>
+    <script src="http://tiles.cmucreatelab.org/ecam/timemachines/shenango1/shenango1.js" type="text/javascript"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js"></script>
+
+    <script>
+      jQuery.support.cors = true;
+      var map, zoomify, locationDivId, timelapse, timelapseFeedUnavailable, hashVars;
+      var currentLocation = "shenango1";
+
+      function tm_init() {
+        selectTimelapseFeed();
+
+        var initialDataset = cached_breathecam.latest.path;
+        var startingDate = cached_breathecam.latest.date;
+
+        var hash = window.location.hash.slice(1);
+        hashVars = org.gigapan.Util.unpackVars(hash);
+        var loadedTimelapse = false;
+        if (hashVars) {
+          if (hashVars.d) {
+            startingDate = String(hashVars.d);
+            initialDataset = cached_breathecam.datasets[startingDate];
+            if (!initialDataset) {
+              initialDataset = cached_breathecam.latest.path;
+            }
+          }
+          if (hashVars.s) {
+            loadedTimelapse = true;
+            currentLocation = String(hashVars.s);
+            changeLocation(currentLocation, startingDate, null, null, false, function() {
+              initialDataset = cached_breathecam.datasets[startingDate];
+              if (!initialDataset) {
+                initialDataset = cached_breathecam.latest.path;
+              }
+              setupTimelapse(initialDataset, startingDate);
+            });
+          }
+        }
+
+        // If we did not load the timelapse with the hash vars above, do so now.
+        if (!loadedTimelapse)
+          setupTimelapse(initialDataset, startingDate);
+      }
+
+      function img_init() {
+        zoomify = new org.gigapan.zoomify({
+          onImageReady: function(imgId) {
+            showContent();
+            if (!$("#timelapse_feed").is(':visible')) {
+              selectImageFeed();
+            }
+          }
+        });
+
+        $("#stitched_image").load(function() {
+          zoomify.makeImageZoomable("stitched_image");
+        });
+
+        $("#stitched_image").bind("mouseover mouseup", function() {
+          $(this).removeClass("openHand closedHand").addClass("openHand");
+        }).bind("mousedown", function() {
+          $(this).removeClass("openHand closedHand").addClass("closedHand");
+        });
+      }
+
+      function setupTimelapse(initialDataset, startingDate) {
+        var settings = {
+          url: initialDataset,
+          disableTourLooping: true,
+          mediaType: ".mp4",
+          showFullScreenBtn: false,
+          showLogoOnDefaultUI: false,
+          datasetType: "breathecam",
+          onTimeMachinePlayerReady: function(viewerDivId) {
+            // Time Machine Listeners
+            timelapse.addTimeChangeListener(function(videoTime) {
+              console.log(timelapse.getCurrentCaptureTime(), videoTime);
+            });
+            // Override the hashchange event
+            window.onhashchange = null;
+            $(window).on("hashchange", function() {
+              var newHash = window.location.hash.slice(1);
+              var newHashVars = org.gigapan.Util.unpackVars(newHash);
+              var currentHash = timelapse.getShareView();
+              var currentHashVars = org.gigapan.Util.unpackVars(currentHash);
+              window.location.hash = "";
+              if (!newHashVars) return;
+
+              if ((newHashVars.d && currentHashVars.d != newHashVars.d) || (newHashVars.s && currentHashVars.s != newHashVars.s)) {
+                var newDate, newDataset;
+                if (newHashVars.d) {
+                  newDate = String(newHashVars.d);
+                  newDataset = cached_breathecam.datasets[newDate];
+                  if (!newDataset) return;
+                }
+                var newTime = parseFloat(newHashVars.t);
+                var newView = timelapse.normalizeView(timelapse.unsafeViewToView(newHashVars.v));
+                if (newHashVars.s && currentHashVars.s != newHashVars.s) {
+                  currentLocation = String(newHashVars.s);
+                  changeLocation(currentLocation, newDate, newView, newTime, true);
+                } else {
+                  updateCalendarAndToggleUI(newDate);
+                  timelapse.loadTimelapse(newDataset, newView, newTime, false);
+                }
+              } else {
+                // Share views
+                timelapse.loadSharedViewFromUnsafeURL(org.gigapan.Util.getUnsafeHashString());
+              }
+            });
+            if (!hashVars) {
+              var numFrames = timelapse.getNumFrames();
+              // 12 fps * 5 seconds = 60 frames
+              var fiveSecondsFromEnd = numFrames - 60;
+              timelapse.seekToFrame(fiveSecondsFromEnd);
+            }
+            showContent();
+          }
+        };
+        timelapse = new org.gigapan.timelapse.Timelapse("timeMachine", settings);
+
+        loadCalendar(startingDate);
+      }
+
+      function selectTimelapseFeed() {
+        $("#image_feed").css("visibility", "hidden");
+        $("#stitched_image_wrapper").css("visibility", "hidden");
+        $("#stitched_image").css("visibility", "hidden");
+        $("#timelapse_feed").show();
+        setLocationTitle();
+      }
+
+      function selectImageFeed() {
+        $("#timelapse_feed").hide();
+        $("#image_feed").css("visibility", "visible");
+        $("#stitched_image_wrapper").css("visibility", "visible");
+        $("#stitched_image").css("visibilriity", "visible");
+        $("#location_toggle_container").css("top", "0px");
+        setLocationTitle();
+      }
+
+      function setLocationTitle() {
+        var locationTitle = $(".location_title").text(); //$("#location_toggle .location_thumbnail_selected").siblings(".location_title").text();
+        $("#locationTitle").text(locationTitle);
+      }
+
+      function showContent() {
+        $("#loading").hide();
+        $("#content").css("visibility", "visible");
+        $("#location_toggle").scrollTop($("#" + locationDivId).offset().top - $("#location_toggle").offset().top);
+      }
+
+      function changeLocation(locationName, newDate, newView, newTime, doLoad, callBack) {
+        currentLocation = locationName;
+        if (timelapseFeedUnavailable) {
+          location.href = "/embeds/" + locationName;
+        } else {
+          $.ajax({
+            url: "http://tiles.cmucreatelab.org/ecam/timemachines/" + locationName + "/" + locationName + ".json",
+            dataType: "json"
+          }).done(function(data) {
+            cached_breathecam = data;
+            var startingDate = cached_breathecam.latest.date;
+            var startingDataset = cached_breathecam.latest.path;
+
+            if (newDate) {
+              var tmpStartingDataset = cached_breathecam.datasets[newDate];
+              if (tmpStartingDataset) {
+                startingDate = newDate;
+                startingDataset = tmpStartingDataset;
+              }
+            }
+            // If there is no timelapse object at this point, then that means that we have just arrived at the page
+            // with a share link that has an invalid location name.
+            // Load the timelapse with the default location specified in the .fail() callback below.
+            if (!timelapse) {
+              setupTimelapse(startingDataset, startingDate);
+              return;
+            }
+            updateCalendarAndToggleUI(locationName, startingDate);
+            if (doLoad) {
+              if (timelapse && startingDataset) {
+                newTime = parseFloat(newTime);
+                timelapse.loadTimelapse(startingDataset, newView, newTime, false, null, function() {
+                  if (isNaN(newTime)) {
+                    var numFrames = timelapse.getNumFrames();
+                    // 12 fps * 5 seconds = 60 frames
+                    var fiveSecondsFromEnd = numFrames - 60;
+                    timelapse.seekToFrame(fiveSecondsFromEnd);
+                  }
+                });
+              }
+            } else if (typeof(callBack) === "function") {
+              callBack();
+            }
+          }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR, textStatus, errorThrown);
+            changeLocation("heinz", null, null, null, true);
+          });
+        }
+      }
+
+      function updateCalendarAndToggleUI(startingDate) {
+        locationDivId = currentLocation + "_overlay";
+        setLocationThumbnailToggle();
+        setLocationTitle();
+        $("#datepicker").datepicker("destroy");
+        loadCalendar(startingDate);
+      }
+
+      function loadCalendar(startingDate) {
+        var dateArray = startingDate.split("-");
+        $("#datepicker").datepicker({
+          defaultDate : new Date(dateArray[0], dateArray[1] - 1, dateArray[2]),
+          minDate : new Date(2014, 0),
+          onSelect : selectDay,
+          beforeShowDay : highlightDays
+        });
+      }
+
+      function highlightDays(date) {
+        date = $.datepicker.formatDate('yy-mm-dd', date);
+        if (cached_breathecam.datasets[date])
+          return [true, 'date-highlight'];
+        else
+          return [false, ''];
+      }
+
+      function selectDay(dateText, dateElem) {
+        var date = $.datepicker.formatDate('yy-mm-dd', new Date(dateText));
+        var path = cached_breathecam.datasets[date];
+        if (timelapse && path)
+          timelapse.loadTimelapse(path, null, null, true);
+      }
+
+      function setLocationThumbnailToggle() {
+        $(".location_thumbnail_selected").removeClass("location_thumbnail_selected");
+        $("#" + locationDivId).addClass("location_thumbnail_selected");
+      }
+
+      function initialize() {
+        // Initialize E-Cam
+        var timelapseSupported = org.gigapan.Util.browserSupported();
+        var stitchedImage = "N/A";
+        locationDivId = "shenango1" + "_overlay";
+        setLocationThumbnailToggle();
+
+        $(".location_thumbnail_container").on("click", function() {
+          window.location.hash = "";
+          changeLocation($(this).attr("data-location-id"), null, null, null, true);
+        });
+
+        if ((!timelapseSupported || typeof (cached_breathecam) === "undefined") && stitchedImage === "") {
+          // Nothing is up. Hide containers and inform the user
+          $("#stitched_image_wrapper").hide();
+          $("#location_toggle").hide();
+          $("#loading").html("<div class='error_msg2'>Content currently unavailable. Please try again later.</div>");
+        } else if (!timelapseSupported || typeof (cached_breathecam) === "undefined") {
+          timelapseFeedUnavailable = true;
+          // TODO: Image feed is not working since the-shenango-channel currently does not have a way to get the latest image,
+          // unlike when it was running on the Rails server.
+          // Timelapse unavailable, show latest stitched pano
+          // Calendar is gone in this mode, so move thumbnail toggles to top of page
+          $("#location_toggle").css({'top':'0px'});
+          $("#image_feed_timestamp").css({"top" : "48px", "right" : "22px"});
+          img_init();
+        } else {
+          // Show timelapse
+          tm_init();
+        }
+        $("#container").on("mousedown", function() { return false; });
+
+        // Initialize Google Map
+        var mapOptions = {
+          scaleControl: true,
+          zoom: 14,
+          center: new google.maps.LatLng(40.495, -80.079)
+        };
+
+        map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+        window.addEventListener('resize', function () { google.maps.event.trigger(map, 'resize'); }, false);
+
+      }
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+  </head>
+  <body>
+    <table id="page_container" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td colspan="2">
+          <div id="container">
+            <div id="loading">
+              <img id="loadingImg" src="assets/images/loading.gif" width="358" height="250" alt="loading">
+            </div>
+            <div id="locationTitle"></div>
+            <div id="timelapse_feed" class="timelapse_feed_embed">
+              <div id="timeMachine"></div>
+              <div id="datepicker" class="datepicker_embed"></div>
+            </div>
+            <div id="image_feed" class="image_feed_embed">
+              <div id="stitched_image_wrapper" class="image-zoom-wrapper image-zoom-wrapper-embed">
+                <div id="zoom-in" title="Zoom in"><p>+</p></div>
+                <div id="zoom-out" title="Zoom out"><p>_</p></div>
+                <img id="stitched_image" class="image-zoom" src="#" alt="Latest Stitch">
+                <span id="image_feed_timestamp">03/09/2015 03:16 PM</span>
+              </div>
+            </div>
+            <div id="location_toggle_container">
+              <a class="location_thumbnail_container location_thumbnail_container_end" data-location-id="shenango1">
+                <div class="location_title">Shenango</div>
+              </a>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td width="50%" style="vertical-align: top; background: green; color: white;">Graphs Here</td>
+        <td width="50%"><div id="map-canvas"></div></td>
+      </tr>
+    </table>
+  </body>
+</html>
