@@ -82,6 +82,85 @@
       jQuery.support.cors = true;
       var map, zoomify, locationDivId, timelapse, timelapseFeedUnavailable, hashVars;
       var currentLocation = "shenango1";
+      var ESDR_API_ROOT_URL = 'http://esdr.cmucreatelab.org/api/v1';
+
+      var color1 = "10,104,177";
+      var color2 = "10,177,186";
+
+      var esdr_feeds = {
+        Speck1 : {
+          feed_id: 4313,
+          api_key: "8bd9a9d740b14a56cff2ea6cac425a0e882dc11507bf88681960677dafe8f54e",
+          channels: {
+            particle_concentration : {
+              graphMetaData : {
+                label: "Dawn: Outdoors - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
+                color: color1
+              },
+              summary: {},
+            },
+            humidity : {
+              graphMetaData : {
+                label: "Dawn: Outdoors - Humidity, %",
+                color: color2
+              },
+              summary: {},
+            }
+          }
+        },
+        Speck2 : {
+          feed_id: 4315,
+          api_key: "10a87f12202b19fc32273b8681ea3ce612cae0472eba3497dda5c96d814f66c8",
+          channels: {
+            particle_concentration : {
+              graphMetaData : {
+                label: "Leah & Don: Outdoors - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
+                color: color1
+              },
+              summary: {},
+            },
+            humidity : {
+              graphMetaData : {
+                label: "Leah & Don: Outdoors - Humidity, %",
+                color: color2
+              },
+              summary: {},
+            }
+          }
+        },
+        Speck3 : {
+          feed_id: 4316,
+          api_key: "02e22d5b3a81370d60d265d9ae9e61e1ddbb276f5aafe894c5f7de424e849147",
+          channels: {
+            particle_concentration : {
+              graphMetaData : {
+                label: "Ted: Outdoors - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
+                color: color1
+              },
+              summary: {},
+            },
+            humidity : {
+              graphMetaData : {
+                label: "Ted: Outdoors - Humidity, %",
+                color: color2
+              },
+              summary: {},
+            }
+          }
+        },
+        ACHD_Lawrenceville : {
+          feed_id: 27,
+          channels : {
+            "PM25B_UG_M3": {
+              graphMetaData : {
+                label: "ACHD: Lawrenceville - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
+                color: color1
+              },
+              summary: {},
+            }
+          }
+        }
+      };
 
       function tm_init() {
         selectTimelapseFeed();
@@ -312,6 +391,48 @@
         $("#" + locationDivId).addClass("location_thumbnail_selected");
       }
 
+      function getFormattedTime(date) {
+        var hours = date.getHours() === 0 ? "12" : date.getHours() > 12 ? date.getHours() - 12 : date.getHours();
+        var minutes = (date.getMinutes() < 10 ? "0" : "") + date.getMinutes();
+        var seconds = date.getSeconds();
+        var ampm = date.getHours() < 12 ? "AM" : "PM";
+        var formattedTime = hours + ":" + minutes + ":" + seconds + " " + ampm;
+        return formattedTime;
+      }
+
+      function esdrExportRequest(requestInfo, callBack) {
+        $.ajax({
+          crossDomain: true,
+          type: "GET",
+          dataType: "text",
+          url: ESDR_API_ROOT_URL + "/feeds/" + requestInfo.feed_id + "/channels/" + requestInfo.channels + "/export",
+          data: { from: requestInfo.start_time, to: requestInfo.end_time, FeedApiKey: requestInfo.api_key},
+          success: function(csvData) {
+            if (typeof(callBack) === "function")
+              callBack(csvData);
+          },
+          failure: function(data) {
+            console.log('Failed to load sensor data.');
+          },
+          headers: requestInfo.headers
+        });
+      }
+
+      function parseEsdrCSV(csvData, sensor) {
+        var csvArray = csvData.split("\n");
+        var headingsArray = csvArray[0].split(",");
+        // First row is the CSV headers, which we took care of above, so start at 1.
+        for (var i = 1; i < csvArray.length; i++) {
+          var csvLineAsArray = csvArray[i].split(",");
+          // First entry is the EPOC time, so start at index 1.
+          for (var j = 1; j < csvLineAsArray.length; j++) {
+            var tmpChannelHeading = headingsArray[j].split(".");
+            var channelHeading = tmpChannelHeading[tmpChannelHeading.length - 1];
+            sensor.channels[channelHeading].summary[getFormattedTime(new Date(csvLineAsArray[0] * 1000))] = parseFloat(csvLineAsArray[j]);
+          }
+        }
+      }
+
       function initialize() {
         // Initialize E-Cam
         var timelapseSupported = org.gigapan.Util.browserSupported();
@@ -354,6 +475,32 @@
         map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
         window.addEventListener('resize', function () { google.maps.event.trigger(map, 'resize'); }, false);
 
+        // Initialize Graphs
+        var sensors = Object.keys(esdr_feeds);
+        var today = new Date();
+        var newDateString =  (today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();
+        var firstCaptureTime = newDateString + " 00:00:00";
+        var lastCaptureTime = newDateString + " 23:59:59";
+        var startTime = (new Date((firstCaptureTime)).getTime()) / 1000;
+        var endTime = (new Date((lastCaptureTime)).getTime()) / 1000;
+
+        for (var i = 0; i < sensors.length; i++) {
+          (function(i){
+            var sensor = esdr_feeds[sensors[i]];
+            var channels = Object.keys(sensor.channels).toString();
+            var requestInfo = {
+              feed_id : sensor.feed_id,
+              api_key : sensor.api_key,
+              start_time : startTime,
+              end_time : endTime,
+              channels : channels,
+              headers : null
+            };
+            esdrExportRequest(requestInfo, function(csvData) {
+              parseEsdrCSV(csvData, sensor);
+            });
+          })(i);
+        }
       }
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>
