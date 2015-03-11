@@ -174,7 +174,10 @@
       var esdr_feeds = {
         ACHD_Avalon : {
           feed_id: 1,
-          latitude: 40.499767, longitude: -80.072,
+          coordinates : {
+            latitude: 40.499767,
+            longitude: -80.072
+          },
           api_key: "8a2ce5c845ca323d80056aefd564f6f7305724a0476318e488c5ea380094ebc2",
           requested_day: {},
           channels : {
@@ -191,7 +194,10 @@
         },
         Speck1 : {
           feed_id: 4315,
-          latitude: 40.499767, longitude: -80.068,
+          coordinates : {
+            latitude: 40.499767,
+            longitude: -80.068
+          },
           requested_day: {},
           api_key: "10a87f12202b19fc32273b8681ea3ce612cae0472eba3497dda5c96d814f66c8",
           channels: {
@@ -214,6 +220,10 @@
         },
         Speck2 : {
           feed_id: 4313,
+          coordinates : {
+            latitude: 40.501,
+            longitude: -80.061
+          },
           requested_day: {},
           api_key: "8bd9a9d740b14a56cff2ea6cac425a0e882dc11507bf88681960677dafe8f54e",
           channels: {
@@ -229,6 +239,10 @@
         },
         Speck3 : {
           feed_id: 4316,
+          coordinates : {
+            latitude: 40.508,
+            longitude: -80.076
+          },
           requested_day: {},
           api_key: "02e22d5b3a81370d60d265d9ae9e61e1ddbb276f5aafe894c5f7de424e849147",
           channels: {
@@ -311,7 +325,7 @@
           onTimeMachinePlayerReady: function(viewerDivId) {
             // Time Machine Listeners
             timelapse.addTimeChangeListener(function(videoTime) {
-              console.log(timelapse.getCurrentCaptureTime(), videoTime);
+              //console.log(timelapse.getCurrentCaptureTime(), videoTime);
               repaintCanvasLayer();
             });
             // Override the hashchange event

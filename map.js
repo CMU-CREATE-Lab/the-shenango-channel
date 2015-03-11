@@ -73,14 +73,14 @@ function setupCanvasLayerProjection() {
 
 function paintPM25(site, channelName, epochTime) {
   var channel = site.channels[channelName];
-  var rectLatLng = new google.maps.LatLng(site.latitude, site.longitude);
+  var rectLatLng = new google.maps.LatLng(site.coordinates.latitude, site.coordinates.longitude);
   var worldPoint = mapProjection.fromLatLngToPoint(rectLatLng);
   var x = worldPoint.x * projectionScale;
   var y = worldPoint.y * projectionScale;
   var rectWidth = 0.01;
 
   // How many pixels per mile?
-  var offset1mile = mapProjection.fromLatLngToPoint(new google.maps.LatLng(site.latitude + 0.014457067, site.longitude));
+  var offset1mile = mapProjection.fromLatLngToPoint(new google.maps.LatLng(site.coordinates.latitude + 0.014457067, site.coordinates.longitude));
   var unitsPerMile = projectionScale * (worldPoint.y - offset1mile.y);
 
   var bar_width = 5;
@@ -160,13 +160,13 @@ function paintPM25(site, channelName, epochTime) {
 }
 
 function getData(site, channel, time) {
-  console.log('getData');
+  //console.log('getData');
 
   var day = Math.floor(time / 86400);
 
   if (!site.requested_day[day]) {
     site.requested_day[day] = true;
-    console.log('Requesting ' + site.feed_id + ', day ' + day);
+    //console.log('Requesting ' + site.feed_id + ', day ' + day);
     var requestInfo = {
       feed_id : site.feed_id,
       api_key : site.api_key,
@@ -177,33 +177,33 @@ function getData(site, channel, time) {
     };
     requestEsdrExport(requestInfo, function(csvData) {
       parseEsdrCSV(csvData, site);
-      console.log('got that data');
+      //console.log('got that data');
       repaintCanvasLayer();
     });
   } else {
-    console.log('We have data for ' + site.feed_id + ', day ' + day);
+    //console.log('We have data for ' + site.feed_id + ', day ' + day);
     if (channel.hourly) {
       time = Math.floor((time - 1800) / 3600) * 3600 + 1800;
-      console.log('Hourly; adjusted time to ' + time);
+      //console.log('Hourly; adjusted time to ' + time);
       var ret = channel.summary[time];
-      console.log('Value is ' + ret);
+      //console.log('Value is ' + ret);
       return ret;
     } else {
       time = Math.round(time);
       // Search for data
       var search_dist = 45;  // 45 seconds
-      console.log('Searching for time ' + time + ', +/- ' + search_dist);
+      //console.log('Searching for time ' + time + ', +/- ' + search_dist);
       for (var i = 0; i <= search_dist; i++) {
         if ((time + i) in channel.summary) {
-          console.log('found at time ' + (time + i));
+          //console.log('found at time ' + (time + i));
           return channel.summary[time + i];
         }
         if ((time - i) in channel.summary) {
-          console.log('found at time ' + (time - i));
+          //console.log('found at time ' + (time - i));
           return channel.summary[time - i];
         }
       }
-      console.log('could not find time in range');
+      //console.log('could not find time in range');
       return null
     }
   }
@@ -211,11 +211,13 @@ function getData(site, channel, time) {
 
 
 function repaintCanvasLayer() {
-  console.log('repaint');
+  //console.log('repaint');
   setupCanvasLayerProjection();
   var epochTime = Date.parse(timelapse.getCurrentCaptureTime()) / 1000;
 
   paintPM25(esdr_feeds.ACHD_Avalon, 'PM25B_UG_M3', epochTime);
   paintPM25(esdr_feeds.Speck1, 'particle_concentration', epochTime);
+  paintPM25(esdr_feeds.Speck2, 'particle_concentration', epochTime);
+  paintPM25(esdr_feeds.Speck3, 'particle_concentration', epochTime);
 }
 
