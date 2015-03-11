@@ -85,7 +85,6 @@
         top: 0px;
         height: 38px;
         border: 1px solid black;
-        z-index: 20;
         width: 100%;
         background: white;
       }
@@ -163,6 +162,7 @@
     <script>
       jQuery.support.cors = true;
       var zoomify, locationDivId, timelapse, timelapseFeedUnavailable, hashVars, checkPlotLoadedInterval, dateAxis;
+      var pageLoadDate = cached_breathecam.latest.date;
       var series = [];
       var intervalCount = 0;
       var currentLocation = "shenango1";
@@ -445,6 +445,7 @@
       }
 
       function loadCalendar(startingDate) {
+        pageLoadDate = startingDate;
         var dateArray = startingDate.split("-");
         $("#datepicker").datepicker({
           defaultDate : new Date(dateArray[0], dateArray[1] - 1, dateArray[2]),
@@ -466,12 +467,7 @@
         var date = $.datepicker.formatDate('yy-mm-dd', new Date(dateText));
         var path = cached_breathecam.datasets[date];
         if (timelapse && path) {
-          var dayStartString = date + " 00:00:00";
-          var dayEndString = date + " 23:59:59";
-          var dayStart = (new Date((dayStartString).replace(/-/g,"/")).getTime()) / 1000;
-          var dayEnd = (new Date((dayEndString).replace(/-/g,"/")).getTime()) / 1000;
-          console.log(dayStart, dayEnd);
-          dateAxis.setRange(dayStart, dayEnd);
+          setGraphTimeRange(date);
           timelapse.loadTimelapse(path, null, null, true);
         }
       }
@@ -532,8 +528,12 @@
             min: startTime,
             max: endTime
           });
+          dateAxis.setMaxRange(null, endTime);
+          setGraphTimeRange(pageLoadDate);
         }
-        dateAxis.setMaxRange(startTime, endTime);
+        if (endTime > dateAxis.getMax()) {
+          dateAxis.setMaxRange(null, endTime);
+        }
 
         // Add charts
         var i = series.length;
@@ -660,6 +660,15 @@
         }
       }
 
+      function setGraphTimeRange(date) {
+        if (!dateAxis) return;
+        var dayStartString = date + " 00:00:00";
+        var dayEndString = date + " 23:59:59";
+        var dayStart = Date.parse(dayStartString) / 1000;
+        var dayEnd = Date.parse(dayEndString) / 1000;
+        dateAxis.setRange(dayStart, dayEnd);
+      }
+
       function initialize() {
         // Initialize E-Cam
         var timelapseSupported = org.gigapan.Util.browserSupported();
@@ -728,8 +737,8 @@
         //var newDateString =  (today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();
         //var firstCaptureTime = newDateString + " 00:00:00";
         //var lastCaptureTime = newDateString + " 23:59:59";
-        //var startTime = (new Date((firstCaptureTime).replace(/-/g,"/")).getTime()) / 1000;
-        //var endTime = (new Date((lastCaptureTime).replace(/-/g,"/")).getTime()) / 1000;
+        //var startTime = Date.parse(firstCaptureTime) / 1000;
+        //var endTime = Date.parse(lastCaptureTime) / 1000;
 
         //for (var i = 0; i < sensors.length; i++) {
         //  (function(i){
