@@ -178,6 +178,7 @@ function getData(site, channel, time) {
     requestEsdrExport(requestInfo, function(csvData) {
       parseEsdrCSV(csvData, site);
       console.log('got that data');
+      repaintCanvasLayer();
     });
   } else {
     console.log('We have data for ' + site.feed_id + ', day ' + day);
@@ -208,75 +209,6 @@ function getData(site, channel, time) {
   }
 }
 
-function test() {
-  // ERROR:  this assumes browser is in eastern timezone
-  //var currentEpochTime = Date.parse(timelapse.getCurrentCaptureTime()) / 1000;
-
-  var site = esdr_feeds.ACHD_Avalon;
-  var channel = site.channels.PM25B_UG_M3;
-  var epochTime = Date.parse('2015-03-08 17:30:00')/1000;
-  console.log(getData(site, channel, epochTime));
-
-  site = esdr_feeds.Speck1;
-  var channel = site.channels.particle_concentration;
-  console.log(getData(site, channel, epochTime));
-
-//  var day = Math.floor(currentEpochTime / 86400);
-//
-//  var channels = Object.keys(sensor.channels).toString();
-//
-//  var requestInfo = {
-//    feed_id : sensor.feed_id,
-//    api_key : sensor.api_key,
-//    start_time : 1425790800,
-//    end_time : 1425790800 + 24*3600,
-//    channels : channels,
-//    headers : null
-//  };
-//
-//  console.log(requestInfo);
-//
-//  requestEsdrExport(requestInfo, function(csv) {
-//    tile = esdrCSVToMultitile(csv);
-//  });
-//
-}
-
-function test() {
-  // ERROR:  this assumes browser is in eastern timezone
-  //var currentEpochTime = Date.parse(timelapse.getCurrentCaptureTime()) / 1000;
-
-  var site = esdr_feeds.ACHD_Avalon;
-  var channel = site.channels.PM25B_UG_M3;
-  var epochTime = Date.parse('2015-03-08 17:30:00')/1000;
-  console.log(getData(site, channel, epochTime));
-
-  site = esdr_feeds.Speck1;
-  var channel = site.channels.particle_concentration;
-  console.log(getData(site, channel, epochTime));
-
-//  var day = Math.floor(currentEpochTime / 86400);
-//
-//  var channels = Object.keys(sensor.channels).toString();
-//
-//  var requestInfo = {
-//    feed_id : sensor.feed_id,
-//    api_key : sensor.api_key,
-//    start_time : 1425790800,
-//    end_time : 1425790800 + 24*3600,
-//    channels : channels,
-//    headers : null
-//  };
-//
-//  console.log(requestInfo);
-//
-//  requestEsdrExport(requestInfo, function(csv) {
-//    tile = esdrCSVToMultitile(csv);
-//  });
-//
-}
-
-
 
 function repaintCanvasLayer() {
   console.log('repaint');
@@ -286,14 +218,4 @@ function repaintCanvasLayer() {
   paintPM25(esdr_feeds.ACHD_Avalon, 'PM25B_UG_M3', epochTime);
   paintPM25(esdr_feeds.Speck1, 'particle_concentration', epochTime);
 }
-
-
-//  var site = 
-//  var channel = 
-//  var epochTime = Date.parse('2015-03-08 17:30:00')/1000;
-//  console.log(getData(site, channel, epochTime));
-//
-//  site = esdr_feeds.Speck1;
-//  var channel = site.channels.particle_concentration;
-//  console.log(getData(site, channel, epochTime));
 
