@@ -92,12 +92,12 @@ function paintPM25(site, channelName, epochTime) {
   var pm25 = getData(site, channel, epochTime);
 
   if (pm25 != null) {
-    context.fillStyle = 'rgba(230, 120, 26, 1)';
+    context.fillStyle = 'rgba(' + site.channels[channelName].graphMetaData.color + ', 1)';
     context.fillRect(x - bar_width, y, bar_width, -bar_scale * pm25 * y_scale);
     context.strokeStyle = 'black';
     context.lineWidth = 1.0 / contextScale;
     context.strokeRect(x - bar_width, y, bar_width, -bar_scale * pm25 * y_scale);
-    context.fillStyle = 'rgba(172, 90, 20, 1)';
+    //context.fillStyle = 'rgba(' + site.channels[channelName].graphMetaData.color + ', 1)';
     context.fillText(pm25, x - bar_width - 0.1, y + y_scale * 2.2 + 1.5);
   }
 

@@ -168,9 +168,6 @@
       var currentLocation = "shenango1";
       var ESDR_API_ROOT_URL = 'http://esdr.cmucreatelab.org/api/v1';
 
-      var color1 = "10,104,177";
-      var color2 = "10,177,186";
-
       var esdr_feeds = {
         ACHD_Avalon : {
           feed_id: 1,
@@ -185,7 +182,7 @@
               hourly : true,
               graphMetaData : {
                 label: "ACHD: Avalon - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
-                color: color1
+                color: "10,104,177"
               },
               summary: {}
             }
@@ -204,14 +201,14 @@
             particle_concentration : {
               graphMetaData : {
                 label: "Leah & Don: Outdoors - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
-                color: color1
+                color: "48, 53, 130"
               },
               summary: {}
             },
             humidity : {
               graphMetaData : {
                 label: "Leah & Don: Outdoors - Humidity, %",
-                color: color2
+                color: "10, 186, 109"
               },
               summary: {}
             }
@@ -230,7 +227,7 @@
             particle_concentration : {
               graphMetaData : {
                 label: "Dawn: Outdoors - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
-                color: color1
+                color: "201, 23, 30"
               },
               summary: {}
             }
@@ -249,7 +246,7 @@
             particle_concentration : {
               graphMetaData : {
                 label: "Ted: Outdoors - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
-                color: color1
+                color: "230, 120, 26"
               },
               summary: {}
             }
