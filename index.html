@@ -157,10 +157,12 @@
     <script src="assets/js/jquery.xdomainrequest.min.js" type="text/javascript"></script>
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js"></script>
     <script src="assets/grapher/gwt/grapher2.nocache.js" type="text/javascript"></script>
+    <script src="map.js"></script>
+    <script src="assets/data-visualization-tools/js/CanvasLayer.js"></script>
 
     <script>
       jQuery.support.cors = true;
-      var map, zoomify, locationDivId, timelapse, timelapseFeedUnavailable, hashVars, checkPlotLoadedInterval, dateAxis;
+      var zoomify, locationDivId, timelapse, timelapseFeedUnavailable, hashVars, checkPlotLoadedInterval, dateAxis;
       var series = [];
       var intervalCount = 0;
       var currentLocation = "shenango1";
@@ -172,9 +174,12 @@
       var esdr_feeds = {
         ACHD_Avalon : {
           feed_id: 1,
+          latitude: 40.499767, longitude: -80.072,
           api_key: "8a2ce5c845ca323d80056aefd564f6f7305724a0476318e488c5ea380094ebc2",
+          requested_day: {},
           channels : {
             "PM25B_UG_M3": {
+              hourly : true,
               graphMetaData : {
                 label: "ACHD: Avalon - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
                 color: color1
@@ -186,6 +191,8 @@
         },
         Speck1 : {
           feed_id: 4315,
+          latitude: 40.499767, longitude: -80.068,
+          requested_day: {},
           api_key: "10a87f12202b19fc32273b8681ea3ce612cae0472eba3497dda5c96d814f66c8",
           channels: {
             particle_concentration : {
@@ -207,6 +214,7 @@
         },
         Speck2 : {
           feed_id: 4313,
+          requested_day: {},
           api_key: "8bd9a9d740b14a56cff2ea6cac425a0e882dc11507bf88681960677dafe8f54e",
           channels: {
             particle_concentration : {
@@ -221,6 +229,7 @@
         },
         Speck3 : {
           feed_id: 4316,
+          requested_day: {},
           api_key: "02e22d5b3a81370d60d265d9ae9e61e1ddbb276f5aafe894c5f7de424e849147",
           channels: {
             particle_concentration : {
@@ -303,6 +312,7 @@
             // Time Machine Listeners
             timelapse.addTimeChangeListener(function(videoTime) {
               console.log(timelapse.getCurrentCaptureTime(), videoTime);
+              repaintCanvasLayer();
             });
             // Override the hashchange event
             window.onhashchange = null;
@@ -508,7 +518,7 @@
           for (var j = 1; j < csvLineAsArray.length; j++) {
             var tmpChannelHeading = headingsArray[j].split(".");
             var channelHeading = tmpChannelHeading[tmpChannelHeading.length - 1];
-            sensor.channels[channelHeading].summary[getFormattedTime(new Date(csvLineAsArray[0] * 1000))] = parseFloat(csvLineAsArray[j]);
+            sensor.channels[channelHeading].summary[csvLineAsArray[0]] = parseFloat(csvLineAsArray[j]);
           }
         }
       }
@@ -680,13 +690,7 @@
         }
         $("#container").on("mousedown", function() { return false; });
 
-        // Initialize Google Map
-        var mapOptions = {
-          scaleControl: true,
-          zoom: 14,
-          center: new google.maps.LatLng(40.495, -80.079)
-        };
-        map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+        initMap('map-canvas');
 
         // Initialize Graphs
         window.grapherLoad = function() {

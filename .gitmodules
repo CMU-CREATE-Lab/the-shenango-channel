@@ -1,3 +1,6 @@
 [submodule "assets/timemachine-viewer"]
 	path = assets/timemachine-viewer
 	url = https://github.com/CMU-CREATE-Lab/timemachine-viewer
+[submodule "assets/data-visualization-tools"]
+	path = assets/data-visualization-tools
+	url = https://github.com/CMU-CREATE-Lab/data-visualization-tools.git
