@@ -60,7 +60,7 @@ function setupCanvasLayerProjection() {
   // scale is just 2^zoom
   // If canvasLayer is scaled (with resolutionScale), we need to scale by
   // the same amount to account for the larger canvas.
-  var contextScale = Math.pow(2, map.zoom) * resolutionScale / projectionScale;
+  contextScale = Math.pow(2, map.zoom) * resolutionScale / projectionScale;
   context.scale(contextScale, contextScale);
 
   /* If the map was not translated, the topLeft corner would be 0,0 in
