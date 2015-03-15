@@ -200,14 +200,14 @@
           channels: {
             particle_concentration : {
               graphMetaData : {
-                label: "Leah & Don: Outdoors - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
-                color: "48, 53, 130"
+                label: "Avalon Speck - <br> PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
+                color: "127, 57, 148"
               },
               summary: {}
             },
             humidity : {
               graphMetaData : {
-                label: "Leah & Don: Outdoors - Humidity, %",
+                label: "Avalon Speck - Humidity, %",
                 color: "10, 186, 109"
               },
               summary: {}
@@ -226,7 +226,7 @@
           channels: {
             particle_concentration : {
               graphMetaData : {
-                label: "Dawn: Outdoors - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
+                label: "Bellevue Speck - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
                 color: "201, 23, 30"
               },
               summary: {}
@@ -245,7 +245,7 @@
           channels: {
             particle_concentration : {
               graphMetaData : {
-                label: "Ted: Outdoors - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
+                label: "Ben Avon Speck - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
                 color: "230, 120, 26"
               },
               summary: {}
@@ -552,7 +552,7 @@
         series[i].id = i;
 
         var color_line = "rgb(" + feed.channels[channelName].graphMetaData.color + ")";
-        var color_fill = "rgba(" + feed.channels[channelName].graphMetaData.color + ",0.4)";
+        var color_fill = "rgba(" + feed.channels[channelName].graphMetaData.color + ",1)";
 
         var row = $('<tr class="chart grapher_row"' + 'data-channel=' + channelName + '></tr>');
         row.append('<td class="chartTitle" style="background:' + color_fill + '">' + feed.channels[channelName].graphMetaData.label + '</td>');
