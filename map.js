@@ -5,6 +5,7 @@ var contextScale;
 var resolutionScale;
 var mapProjection;
 var projectionScale = 2000;
+var y_scale;
 
 function initMap(div) {
   // Initialize Google Map
@@ -77,7 +78,6 @@ function paintPM25(site, channelName, epochTime) {
   var worldPoint = mapProjection.fromLatLngToPoint(rectLatLng);
   var x = worldPoint.x * projectionScale;
   var y = worldPoint.y * projectionScale;
-  var rectWidth = 0.01;
 
   // How many pixels per mile?
   var offset1mile = mapProjection.fromLatLngToPoint(new google.maps.LatLng(site.coordinates.latitude + 0.014457067, site.coordinates.longitude));
@@ -204,7 +204,7 @@ function getData(site, channel, time) {
         }
       }
       //console.log('could not find time in range');
-      return null
+      return null;
     }
   }
 }
@@ -213,11 +213,13 @@ function getData(site, channel, time) {
 function repaintCanvasLayer() {
   //console.log('repaint');
   setupCanvasLayerProjection();
-  var epochTime = Date.parse(timelapse.getCurrentCaptureTime()) / 1000;
+  // Date.parse() can only reliably parse RFC2822 or ISO 8601 dates.
+  // The result is that parsing the capture time from Time Machine results in undefined.
+  // Chrome (unlike FireFox or IE) is more lenient and will parse it correctly though.
+  var epochTime = (new Date((timelapse.getCurrentCaptureTime()).replace(/-/g,"/")).getTime()) / 1000;
 
   paintPM25(esdr_feeds.ACHD_Avalon, 'PM25B_UG_M3', epochTime);
   paintPM25(esdr_feeds.Speck1, 'particle_concentration', epochTime);
   paintPM25(esdr_feeds.Speck2, 'particle_concentration', epochTime);
   paintPM25(esdr_feeds.Speck3, 'particle_concentration', epochTime);
 }
-

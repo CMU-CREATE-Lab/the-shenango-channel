@@ -161,10 +161,9 @@
 
     <script>
       jQuery.support.cors = true;
-      var zoomify, locationDivId, timelapse, timelapseFeedUnavailable, hashVars, checkPlotLoadedInterval, dateAxis;
+      var zoomify, locationDivId, timelapse, timelapseFeedUnavailable, hashVars, dateAxis;
       var pageLoadDate = cached_breathecam.latest.date;
       var series = [];
-      var intervalCount = 0;
       var currentLocation = "shenango1";
       var ESDR_API_ROOT_URL = 'http://esdr.cmucreatelab.org/api/v1';
 
@@ -539,6 +538,10 @@
             min: startTime,
             max: endTime
           });
+          dateAxis.addAxisChangeListener(function() {
+            for (var seriesCount = 0; seriesCount < series.length; seriesCount++)
+              clampNumberAxisToDataRange(seriesCount);
+          });
           dateAxis.setMaxRange(null, endTime);
           setGraphTimeRange(pageLoadDate);
         }
@@ -619,9 +622,10 @@
         });
         series[i].pc = new PlotContainer("series" + i, false, [plot]);
         setSizes();
-        checkPlotLoadedInterval = setInterval(function(){
+        series[i].loadingIntervalCount = 0;
+        series[i].checkPlotLoadedInterval = setInterval(function(){
           clampNumberAxisToDataRange(i);
-          intervalCount++;
+          series[i].loadingIntervalCount++;
         }, 100);
       };
 
@@ -630,14 +634,12 @@
         var plot = series[seriesIndex].p;
         if (!plot) return;
         var stats = plot.getStatistics(dateAxis.getMin(), dateAxis.getMax());
-        if (checkPlotLoadedInterval && stats.has_data || intervalCount >= 20) {
-          clearInterval(checkPlotLoadedInterval);
-          intervalCount = 0;
+        if (series[seriesIndex].loadingIntervalCount >= 20) {
+          clearInterval(series[seriesIndex].checkPlotLoadedInterval);
         }
-        if (typeof stats.y_min !== 'undefined' && typeof stats.y_max !== 'undefined') {
+        if (stats.has_data && typeof stats.y_min !== 'undefined' && typeof stats.y_max !== 'undefined') {
           var paddedRange = paddedYAxisRange(stats.y_min, stats.y_max);
           series[seriesIndex].axis.setRange(paddedRange.min, paddedRange.max);
-          intervalCount = 0;
         }
       }
 
@@ -675,8 +677,8 @@
         if (!dateAxis) return;
         var dayStartString = date + " 00:00:00";
         var dayEndString = date + " 23:59:59";
-        var dayStart = Date.parse(dayStartString) / 1000;
-        var dayEnd = Date.parse(dayEndString) / 1000;
+        var dayStart = (new Date((dayStartString).replace(/-/g,"/")).getTime()) / 1000;
+        var dayEnd = (new Date((dayEndString).replace(/-/g,"/")).getTime()) / 1000;
         dateAxis.setRange(dayStart, dayEnd);
       }
 
@@ -748,8 +750,8 @@
         //var newDateString =  (today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();
         //var firstCaptureTime = newDateString + " 00:00:00";
         //var lastCaptureTime = newDateString + " 23:59:59";
-        //var startTime = Date.parse(firstCaptureTime) / 1000;
-        //var endTime = Date.parse(lastCaptureTime) / 1000;
+        //var startTime = (new Date((firstCaptureTime).replace(/-/g,"/")).getTime()) / 1000;
+        //var endTime = (new Date((lastCaptureTime).replace(/-/g,"/")).getTime()) / 1000;
 
         //for (var i = 0; i < sensors.length; i++) {
         //  (function(i){
