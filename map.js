@@ -211,15 +211,19 @@ function getData(site, channel, time) {
 
 
 function repaintCanvasLayer() {
-  //console.log('repaint');
-  setupCanvasLayerProjection();
-  // Date.parse() can only reliably parse RFC2822 or ISO 8601 dates.
-  // The result is that parsing the capture time from Time Machine results in undefined.
-  // Chrome (unlike FireFox or IE) is more lenient and will parse it correctly though.
-  var epochTime = (new Date((timelapse.getCurrentCaptureTime()).replace(/-/g,"/")).getTime()) / 1000;
+  try {
+    //console.log('repaint');
+    setupCanvasLayerProjection();
+    // Date.parse() can only reliably parse RFC2822 or ISO 8601 dates.
+    // The result is that parsing the capture time from Time Machine results in undefined.
+    // Chrome (unlike FireFox or IE) is more lenient and will parse it correctly though.
+    var epochTime = (new Date((timelapse.getCurrentCaptureTime()).replace(/-/g,"/")).getTime()) / 1000;
 
-  paintPM25(esdr_feeds.ACHD_Avalon, 'PM25B_UG_M3', epochTime);
-  paintPM25(esdr_feeds.Speck1, 'particle_concentration', epochTime);
-  paintPM25(esdr_feeds.Speck2, 'particle_concentration', epochTime);
-  paintPM25(esdr_feeds.Speck3, 'particle_concentration', epochTime);
+    paintPM25(esdr_feeds.ACHD_Avalon, 'PM25B_UG_M3', epochTime);
+    paintPM25(esdr_feeds.Speck1, 'particle_concentration', epochTime);
+    paintPM25(esdr_feeds.Speck2, 'particle_concentration', epochTime);
+    paintPM25(esdr_feeds.Speck3, 'particle_concentration', epochTime);
+  } catch(e) {
+
+  }
 }

@@ -387,7 +387,7 @@
       }
 
       function setLocationTitle() {
-        var locationTitle = $(".location_title").text(); //$("#location_toggle .location_thumbnail_selected").siblings(".location_title").text();
+        var locationTitle = $("#location_toggle_container .location_thumbnail_selected").siblings(".location_title").text();
         $("#locationTitle").text(locationTitle);
       }
 
@@ -800,8 +800,15 @@
               </div>
             </div>
             <div id="location_toggle_container">
-              <a class="location_thumbnail_container location_thumbnail_container_end" data-location-id="shenango1">
-                <div class="location_title">Shenango</div>
+              <a class="location_thumbnail_container" data-location-id="shenango1" href="javascript:void(0)">
+                <div id="shenango1_overlay" class="location_thumbnail_overlay"></div>
+                <img src="assets/images/shenango1.png" class="location_thumbnail" alt="Shenango1">
+                <div class="location_title">Shenango (Leah)</div>
+              </a>
+              <a class="location_thumbnail_container location_thumbnail_container_end" data-location-id="shenango2" href="javascript:void(0)">
+                <div id="shenango2_overlay" class="location_thumbnail_overlay"></div>
+                <img src="assets/images/shenango2.png" class="location_thumbnail" alt="Shenango2">
+                <div class="location_title">Shenango (Metro Motors)</div>
               </a>
             </div>
           </div>
