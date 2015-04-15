@@ -1,3 +1,5 @@
+"use strict";
+
 var map;
 var canvasLayer;
 var context;
@@ -12,6 +14,7 @@ function initMap(div) {
   resolutionScale = window.devicePixelRatio || 1;
 
   var mapOptions = {
+    keyboardShortcuts: false,
     scaleControl: true,
     zoom: 13,
     center: new google.maps.LatLng(40.495, -80.079)
@@ -21,30 +24,20 @@ function initMap(div) {
   // initialize the canvasLayer
   var canvasLayerOptions = {
     map: map,
-    //resizeHandler: resize,
     animate: false,
     updateHandler: repaintCanvasLayer,
     resolutionScale: resolutionScale
   };
   canvasLayer = new CanvasLayer(canvasLayerOptions);
   context = canvasLayer.canvas.getContext('2d');
-  window.addEventListener('resize', function () {  google.maps.event.trigger(map, 'resize'); }, false);
+  //window.addEventListener('resize', function () { google.maps.event.trigger(map, 'resize'); }, false);
 }
-
-var sites = [
-              {
-                name: "Avalon ACHD",
-                latitude: 40.499767, longitude: -80.071337,
-                channels:["SONICWS_MPH", "PM25B_UG_M3", "SONICWD_DEG"]
-              }
-            ];
 
 function setupCanvasLayerProjection() {
   var canvasWidth = canvasLayer.canvas.width;
   var canvasHeight = canvasLayer.canvas.height;
   context.setTransform(1, 0, 0, 1, 0, 0);
   context.clearRect(0, 0, canvasWidth, canvasHeight);
-  if (!sites) return;
 
   /* We need to scale and translate the map for current view.
    * see https://developers.google.com/maps/documentation/javascript/maptypes#MapCoordinates
@@ -79,84 +72,67 @@ function paintPM25(site, channelName, epochTime) {
   var x = worldPoint.x * projectionScale;
   var y = worldPoint.y * projectionScale;
 
-  // How many pixels per mile?
-  var offset1mile = mapProjection.fromLatLngToPoint(new google.maps.LatLng(site.coordinates.latitude + 0.014457067, site.coordinates.longitude));
-  var unitsPerMile = projectionScale * (worldPoint.y - offset1mile.y);
-
   var bar_width = 5;
   var bar_scale = 0.5;
   context.font = '4px Arial';
+
+  // How many pixels per mile?
+  var offset1mile = mapProjection.fromLatLngToPoint(new google.maps.LatLng(site.coordinates.latitude + 0.014457067, site.coordinates.longitude));
+  var unitsPerMile = 1000 * (worldPoint.y - offset1mile.y);
 
   y_scale = site['flip_y'] ? -1 : 1;
 
   var pm25 = getData(site, channel, epochTime);
 
-  if (pm25 != null) {
+  if (pm25 !== null) {
     context.fillStyle = 'rgba(' + site.channels[channelName].graphMetaData.color + ', 1)';
     context.fillRect(x - bar_width, y, bar_width, -bar_scale * pm25 * y_scale);
     context.strokeStyle = 'black';
     context.lineWidth = 1.0 / contextScale;
     context.strokeRect(x - bar_width, y, bar_width, -bar_scale * pm25 * y_scale);
-    //context.fillStyle = 'rgba(' + site.channels[channelName].graphMetaData.color + ', 1)';
     context.fillText(pm25, x - bar_width - 0.1, y + y_scale * 2.2 + 1.5);
   }
 
-//
-//      var pm10 = find_channel(site, 'PM10');
-//      if (pm10 && pm10[i] != null) {
-//        context.fillStyle = 'rgba(255, 0, 0, 1)';
-//        context.fillRect(x, y, bar_width, -bar_scale * pm10[i] * y_scale);
-//        context.strokeStyle = 'black';
-//        context.lineWidth = 1.0 / scale;
-//        context.strokeRect(x, y, bar_width, -bar_scale * pm10[i] * y_scale);
-//        context.fillStyle = 'rgba(200, 0, 0, 1)';
-//        context.fillText(pm10[i], x + 0.5, y + y_scale * 2.2 + 1.5);
-//      }
-//
-//      var wind_speed = find_channel_suffix(site, 'WS_MPH');
-//      var wind_dir = find_channel_suffix(site, 'WD_DEG');
-//      // How to interpret wind direction:
-//      // Avalon, when smelly, tends to have winds from the West or Southwest
-//      // Fri 13 Feb 2015, 16:00, WSW, heading 246
-//      // Direction wind is coming _from_
-//      //    0
-//      // 270 90
-//      //   180
-//
-//      if (displayArrows && wind_speed && wind_dir) {
-//        if (wind_speed[i] > .1) {
-//          var wind_dir_radians = wind_dir[i] * Math.PI / 180;
-//          var dx = -Math.sin(wind_dir_radians);
-//          var dy =  Math.cos(wind_dir_radians);
-//          var d = 1;
-//          var length = unitsPerMile * wind_speed[i] / 2;
-//          context.strokeStyle = '#0000ee';
-//          context.lineWidth = Math.max(2.0 / scale, d * 0.75);
-//          context.beginPath();
-//          context.moveTo(x, y);
-//          context.lineTo(x + (length - d * 1) * dx,
-//                         y + (length - d * 1) * dy);
-//          context.stroke();
-//
-//          context.fillStyle = '#0000ee';
-//          context.beginPath();
-//          context.moveTo(x + length * dx,
-//                         y + length * dy);
-//          context.lineTo(x + (length - d * 3) * dx + d * 1.5 * dy,
-//                         y + (length - d * 3) * dy - d * 1.5 * dx);
-//          context.lineTo(x + (length - d * 3) * dx - d * 1.5 * dy,
-//                         y + (length - d * 3) * dy + d * 1.5 * dx);
-//          context.fill();
-//        }
-//      }
-//
-//      if (pm25 || pm10 || (displayArrows && wind_speed && wind_dir)) {
-//        context.fillStyle = 'black';
-//        context.beginPath();
-//        context.arc(x, y, 1, 0, 2 * Math.PI, false);
-//        context.fill();
-//      }
-//    }
+  var wind_speed, wind_dir;
+  if (site.channels["SONICWS_MPH"]) {
+    wind_speed = getData(site, site.channels["SONICWS_MPH"], epochTime);
+    wind_dir = getData(site, site.channels["SONICWD_DEG"], epochTime);
+  }
+
+  if (wind_speed && wind_dir) {
+    x -= bar_width;
+    if (wind_speed > 0.1) {
+      var wind_dir_radians = wind_dir * Math.PI / 180;
+      var dx = -Math.sin(wind_dir_radians);
+      var dy =  Math.cos(wind_dir_radians);
+      var d = 1;
+      var length = unitsPerMile * wind_speed / 2;
+
+      context.strokeStyle = '#0000ee';
+      context.lineWidth = Math.max(2.0 / contextScale, d * 0.75);
+      context.beginPath();
+      context.moveTo(x, y);
+      context.lineTo(x + (length - d * 1) * dx,
+                     y + (length - d * 1) * dy);
+      context.stroke();
+
+      context.fillStyle = '#0000ee';
+      context.beginPath();
+      context.moveTo(x + length * dx,
+                     y + length * dy);
+      context.lineTo(x + (length - d * 3) * dx + d * 1.5 * dy,
+                     y + (length - d * 3) * dy - d * 1.5 * dx);
+      context.lineTo(x + (length - d * 3) * dx - d * 1.5 * dy,
+                     y + (length - d * 3) * dy + d * 1.5 * dx);
+      context.fill();
+
+      // Black dot as base to wind vector
+      context.fillStyle = 'black';
+      context.beginPath();
+      context.arc(x, y, 1.18, 0, 2 * Math.PI, false);
+      context.fill();
+    }
+  }
 }
 
 function getData(site, channel, time) {
@@ -182,6 +158,8 @@ function getData(site, channel, time) {
     });
   } else {
     //console.log('We have data for ' + site.feed_id + ', day ' + day);
+    //console.log(channel);
+    if (!channel) return null;
     if (channel.hourly) {
       time = Math.floor((time - 1800) / 3600) * 3600 + 1800;
       //console.log('Hourly; adjusted time to ' + time);
@@ -193,6 +171,7 @@ function getData(site, channel, time) {
       // Search for data
       var search_dist = 45;  // 45 seconds
       //console.log('Searching for time ' + time + ', +/- ' + search_dist);
+      //console.log(channel);
       for (var i = 0; i <= search_dist; i++) {
         if ((time + i) in channel.summary) {
           //console.log('found at time ' + (time + i));
@@ -209,7 +188,6 @@ function getData(site, channel, time) {
   }
 }
 
-
 function repaintCanvasLayer() {
   try {
     //console.log('repaint');
@@ -220,10 +198,15 @@ function repaintCanvasLayer() {
     var epochTime = (new Date((timelapse.getCurrentCaptureTime()).replace(/-/g,"/")).getTime()) / 1000;
 
     paintPM25(esdr_feeds.ACHD_Avalon, 'PM25B_UG_M3', epochTime);
+    paintPM25(esdr_feeds.ACHD_North_Braddock, 'PM25B_UG_M3', epochTime);
+    paintPM25(esdr_feeds.ACHD_Lawrenceville, 'PM25B_UG_M3', epochTime);
+    paintPM25(esdr_feeds.ACHD_Parkway_East, 'PM25B_UG_M3', epochTime);
+    paintPM25(esdr_feeds.ACHD_Liberty, 'PM25B_UG_M3', epochTime);
+    paintPM25(esdr_feeds.ACHD_South_Fayette, 'PM25B_UG_M3', epochTime);
     paintPM25(esdr_feeds.Speck1, 'particle_concentration', epochTime);
     paintPM25(esdr_feeds.Speck2, 'particle_concentration', epochTime);
     paintPM25(esdr_feeds.Speck3, 'particle_concentration', epochTime);
   } catch(e) {
-
+    //console.log(e);
   }
 }

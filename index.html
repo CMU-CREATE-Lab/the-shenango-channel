@@ -114,6 +114,31 @@
         background: white;
       }
 
+      .annotationContent {
+        position: absolute;
+        left: 159px;
+        right: 35px;
+        height: 35px;
+        border: 1px solid black;
+        background: white;
+      }
+
+      .annotationChart {
+        height: 35px;
+        background: #4f5457 !important;
+      }
+
+      .annotationChartTitle {
+        position: absolute;
+        left: 0px;
+        width: 136px;
+        height: 35px;
+        border: 1px solid black;
+        font-family: 'Helvetica Neue', Helvetica, Arial;
+        color: white;
+        padding: 11px
+      }
+
       .chartAxis {
         position: absolute;
         right: 0px;
@@ -136,7 +161,6 @@
     <link href="assets/timemachine-viewer/css/jquery-ui/smoothness/jquery-ui.custom.css" media="screen" rel="stylesheet" type="text/css" />
     <link href="assets/timemachine-viewer/css/defaultUI.css" media="screen" rel="stylesheet" type="text/css" />
     <link href="assets/css/application.css" media="screen" rel="stylesheet" type="text/css" />
-    <link href="assets/css/zoomify.css" media="screen" rel="stylesheet" type="text/css" />
 
     <script src="assets/timemachine-viewer/js/jquery/jquery.min.js" type="text/javascript"></script>
     <script src="assets/timemachine-viewer/js/jquery/jquery-ui.custom.min.js" type="text/javascript"></script>
@@ -151,21 +175,24 @@
     <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/defaultUI.js" type="text/javascript"></script>
     <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/crossdomain_api.js" type="text/javascript"></script>
     <script src="assets/timemachine-viewer/template_includes.js" type="text/javascript"></script>
-    <script src="assets/js/zoomify.js" type="text/javascript"></script>
     <script src="http://tiles.cmucreatelab.org/ecam/timemachines/shenango1/shenango1.js" type="text/javascript"></script>
     <script src="assets/js/jquery.xdomainrequest.min.js" type="text/javascript"></script>
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js"></script>
-    <script src="assets/grapher/gwt/grapher2.nocache.js" type="text/javascript"></script>
+    <script src="assets/grapher/grapher2.nocache.js" type="text/javascript"></script>
     <script src="map.js"></script>
+    <script src="smell.js"></script>
     <script src="assets/data-visualization-tools/js/CanvasLayer.js"></script>
 
     <script>
+      "use strict";
       jQuery.support.cors = true;
       var zoomify, locationDivId, timelapse, timelapseFeedUnavailable, hashVars, dateAxis;
       var pageLoadDate = cached_breathecam.latest.date;
       var series = [];
       var currentLocation = "shenango1";
+      var currentDate;
       var ESDR_API_ROOT_URL = 'http://esdr.cmucreatelab.org/api/v1';
+      var clampTimeout = null;
 
       var esdr_feeds = {
         ACHD_Avalon : {
@@ -178,11 +205,22 @@
           requested_day: {},
           channels : {
             "PM25B_UG_M3": {
+              show_graph: true,
               hourly : true,
               graphMetaData : {
                 label: "ACHD: Avalon - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
                 color: "10,104,177"
               },
+              summary: {}
+            },
+            "SONICWS_MPH": {
+              show_graph: false,
+              hourly : true,
+              summary: {}
+            },
+            "SONICWD_DEG": {
+              show_graph: false,
+              hourly : true,
               summary: {}
             }
           },
@@ -198,6 +236,7 @@
           api_key: "10a87f12202b19fc32273b8681ea3ce612cae0472eba3497dda5c96d814f66c8",
           channels: {
             particle_concentration : {
+              show_graph: true,
               graphMetaData : {
                 label: "Avalon Speck - <br> PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
                 color: "127, 57, 148"
@@ -205,6 +244,7 @@
               summary: {}
             },
             humidity : {
+              show_graph: true,
               graphMetaData : {
                 label: "Avalon Speck - Humidity, %",
                 color: "10, 186, 109"
@@ -224,6 +264,7 @@
           api_key: "8bd9a9d740b14a56cff2ea6cac425a0e882dc11507bf88681960677dafe8f54e",
           channels: {
             particle_concentration : {
+              show_graph: true,
               graphMetaData : {
                 label: "Bellevue Speck - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
                 color: "201, 23, 30"
@@ -243,10 +284,121 @@
           api_key: "02e22d5b3a81370d60d265d9ae9e61e1ddbb276f5aafe894c5f7de424e849147",
           channels: {
             particle_concentration : {
+              show_graph: true,
               graphMetaData : {
                 label: "Ben Avon Speck - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
                 color: "230, 120, 26"
               },
+              summary: {}
+            }
+          },
+          fullTimeRange: {}
+        },
+        ACHD_North_Braddock : {
+          feed_id: 3,
+          coordinates : {
+            latitude: 40.402,
+            longitude: -79.860
+          },
+          requested_day: {},
+          api_key: "3c607ed62b70fd874e62c8aea4c40811398c6ddcf5dc3e15edfc4cda4dc256d6",
+          channels: {
+            "SONICWS_MPH": {
+              show_graph: false,
+              hourly : true,
+              summary: {}
+            },
+            "SONICWD_DEG": {
+              show_graph: false,
+              hourly : true,
+              summary: {}
+            }
+          },
+          fullTimeRange: {}
+        },
+        ACHD_Lawrenceville : {
+          feed_id: 26,
+          coordinates : {
+            latitude: 40.465,
+            longitude: -79.960
+          },
+          requested_day: {},
+          api_key: "01aceb2dd35a61aadb5992292ee7cc34ec8d044ccf8d49b4b24c9c335476616c",
+          channels: {
+            "SONICWS_MPH": {
+              show_graph: false,
+              hourly : true,
+              summary: {}
+            },
+            "SONICWD_DEG": {
+              show_graph: false,
+              hourly : true,
+              summary: {}
+            }
+          },
+          fullTimeRange: {}
+        },
+        ACHD_Parkway_East : {
+          feed_id: 43,
+          coordinates : {
+            latitude: 40.437,
+            longitude: -79.863
+          },
+          requested_day: {},
+          api_key: "bf61b67e0b93d612dacf8f9f034fba75da9141046df38fd058b44fdb1076ab9f",
+          channels: {
+            "SONICWS_MPH": {
+              show_graph: false,
+              hourly : true,
+              summary: {}
+            },
+            "SONICWD_DEG": {
+              show_graph: false,
+              hourly : true,
+              summary: {}
+            }
+          },
+          fullTimeRange: {}
+        },
+        ACHD_Liberty : {
+          feed_id: 28,
+          coordinates : {
+            latitude: 40.323,
+            longitude: -79.868
+          },
+          requested_day: {},
+          api_key: "ce7e8af4e53980642fd0249808af4f55bcfb00744207106a5b000119a0c5e189",
+          channels: {
+            "SONICWS_MPH": {
+              show_graph: false,
+              hourly : true,
+              summary: {}
+            },
+            "SONICWD_DEG": {
+              show_graph: false,
+              hourly : true,
+              summary: {}
+            }
+          },
+          fullTimeRange: {}
+        },
+        ACHD_South_Fayette : {
+          feed_id: 32,
+          coordinates : {
+            latitude: 40.375,
+            longitude: -80.169
+          },
+          requested_day: {},
+          api_key: "fd7a17dee775a42a97a0a87d9ba504a172e1fe46b466f8ae2972df1dcf105b7c",
+          channels: {
+            "SONICWS_MPH": {
+              show_graph: false,
+              hourly : true,
+              summary: {}
+            },
+            "SONICWD_DEG": {
+              show_graph: false,
+              hourly : true,
               summary: {}
             }
           },
@@ -323,6 +475,7 @@
             timelapse.addTimeChangeListener(function(videoTime) {
               //console.log(timelapse.getCurrentCaptureTime(), videoTime);
               repaintCanvasLayer();
+              repaintSmellCanvasLayer();
             });
             // Override the hashchange event
             window.onhashchange = null;
@@ -447,6 +600,7 @@
       }
 
       function updateCalendarAndToggleUI(startingDate) {
+        $(".gwt-PopupPanel").remove();
         locationDivId = currentLocation + "_overlay";
         setLocationThumbnailToggle();
         setLocationTitle();
@@ -456,6 +610,7 @@
 
       function loadCalendar(startingDate) {
         pageLoadDate = startingDate;
+        currentDate = startingDate;
         var dateArray = startingDate.split("-");
         $("#datepicker").datepicker({
           defaultDate : new Date(dateArray[0], dateArray[1] - 1, dateArray[2]),
@@ -477,6 +632,8 @@
         var date = $.datepicker.formatDate('yy-mm-dd', new Date(dateText));
         var path = cached_breathecam.datasets[date];
         if (timelapse && path) {
+          $(".gwt-PopupPanel").remove();
+          currentDate = date;
           setGraphTimeRange(date);
           timelapse.loadTimelapse(path, null, null, true);
         }
@@ -532,6 +689,8 @@
       var createChart = function(feed, channelName, feedAPIKey) {
         var startTime = feed.fullTimeRange.min;
         var endTime = feed.fullTimeRange.max;
+
+        // Initial creation
         if (!$("#dateAxisContainer").length) {
           $("#grapher").append('<tr id="dateAxisContainer" class="grapher_row"><td id="sensorColumnTitle">Location / Sensor</td><td id="dateAxis"></td><td></td></tr>');
           dateAxis = new DateAxis("dateAxis", "horizontal", {
@@ -539,12 +698,21 @@
             max: endTime
           });
           dateAxis.addAxisChangeListener(function() {
-            for (var seriesCount = 0; seriesCount < series.length; seriesCount++)
-              clampNumberAxisToDataRange(seriesCount);
+            if (clampTimeout) return;
+            clampTimeout = window.setTimeout(function() {
+              for (var seriesCount = 0; seriesCount < series.length; seriesCount++) {
+                clampNumberAxisToDataRange(seriesCount);
+              }
+              window.clearTimeout(clampTimeout);
+              clampTimeout = null;
+            }, 350);
           });
           dateAxis.setMaxRange(null, endTime);
           setGraphTimeRange(pageLoadDate);
+          addSmellReportsToGrapher();
         }
+
+        // Set max range of all the graphs
         if (endTime > dateAxis.getMax()) {
           dateAxis.setMaxRange(null, endTime);
         }
@@ -581,14 +749,31 @@
 
         var plot = new DataSeriesPlot(datasource, dateAxis, series[i].axis, {});
 
+        plot.addDataPointListener(function(pointData, event) {
+          if (event && event.actionName == "click") {
+            dateAxis.setCursorPosition(null);
+            var pointDataDateObj = new Date(pointData.dateString);
+            var commentDate = $.datepicker.formatDate('yy-mm-dd', pointDataDateObj);
+            if (commentDate != currentDate) {
+              var path = cached_breathecam.datasets[commentDate];
+              var currentView = timelapse.getView();
+              currentDate = commentDate;
+              timelapse.loadTimelapse(path, currentView, null, null, pointDataDateObj);
+              $("#datepicker").datepicker("setDate", pointDataDateObj);
+            } else {
+              var desiredDateString = pointData.dateString.split(", ")[1];
+              var closestDesiredFrame = timelapse.findExactOrClosestCaptureTime(desiredDateString.substr(0, 8));
+              timelapse.seekToFrame(closestDesiredFrame);
+            }
+          }
+        });
+
         series[i].p = plot;
         plot.setStyle({
-          "styles": [{
-            "type": "line",
-            "lineWidth": 1,
-            "show": true,
-            "color": color_line
-          }],
+          "styles": [
+            { "type" : "line", "lineWidth" : 1, "show" : true, "color" : color_line },
+            { "type" : "circle", radius : 1, "lineWidth" : 1, "show" : true, "color" : color_line, fill : true }
+          ],
           "highlight" : {
             "lineWidth" : 1,
             "styles" : [
@@ -611,7 +796,7 @@
                {
                   "show" : true,
                   "type" : "value",
-                  "fillColor" : "#ff0000",
+                  "fillColor" : "#000000",
                   "marginWidth" : 10,
                   "font" : "10pt Helvetica,Arial,Verdana,sans-serif",
                   "verticalOffset" : 7,
@@ -631,15 +816,22 @@
 
       function clampNumberAxisToDataRange(seriesIndex) {
         if (!series[seriesIndex]) return;
-        var plot = series[seriesIndex].p;
-        if (!plot) return;
-        var stats = plot.getStatistics(dateAxis.getMin(), dateAxis.getMax());
+
         if (series[seriesIndex].loadingIntervalCount >= 20) {
           clearInterval(series[seriesIndex].checkPlotLoadedInterval);
         }
-        if (stats.has_data && typeof stats.y_min !== 'undefined' && typeof stats.y_max !== 'undefined') {
-          var paddedRange = paddedYAxisRange(stats.y_min, stats.y_max);
-          series[seriesIndex].axis.setRange(paddedRange.min, paddedRange.max);
+
+        var plots = series[seriesIndex].p;
+        if (!plots) return;
+        if (plots.constructor !== Array) plots = [plots];
+
+        for (var i = 0; i < plots.length; i++) {
+          var plot = plots[i];
+          var stats = plot.getSimpleStatistics(dateAxis.getMin(), dateAxis.getMax());
+          if (stats.has_data && typeof stats.y_min !== 'undefined' && typeof stats.y_max !== 'undefined') {
+            var paddedRange = paddedYAxisRange(stats.y_min, stats.y_max);
+            series[seriesIndex].axis.setRange(paddedRange.min, paddedRange.max);
+          }
         }
       }
 
@@ -668,8 +860,11 @@
         if (!dateAxisWidth || !dateAxisHeight) return;
         dateAxis.setSize(dateAxisWidth, dateAxisHeight, SequenceNumber.getNext());
         for (var i = 0; i < series.length; i++) {
-          series[i].axis.setSize($('#series' + i + 'axis').width(), $('.chart').height(), SequenceNumber.getNext());
-          series[i].pc.setSize($('#series' + i).width(), $('.chart').height(), SequenceNumber.getNext());
+          var newHeight = $('.chart').height();
+          if (i === 0)
+            newHeight = $('.annotationContent').height();
+          series[i].axis.setSize($('#series' + i + 'axis').width(), newHeight, SequenceNumber.getNext());
+          series[i].pc.setSize($('#series' + i).width(), newHeight, SequenceNumber.getNext());
         }
       }
 
@@ -712,7 +907,11 @@
         }
         $("#container").on("mousedown", function() { return false; });
 
+        // Initialize Map
         initMap('map-canvas');
+
+        // Initialize Smells
+        initSmells();
 
         // Initialize Graphs
         window.grapherLoad = function() {
@@ -730,6 +929,7 @@
                         var feed = esdr_feeds[feedNames[j]];
                         var channelNames = Object.keys(feed.channels);
                         channelNames.forEach(function(channelName) {
+                          if (!feed.channels[channelName].show_graph) return;
                           window.setTimeout(function() {
                             createChart(feed, channelName, feed.api_key);
                           }, j*50);
