@@ -1,1 +1,0 @@
-Corresponds to commit 6bed23b2 from the "stripchart" branch.
