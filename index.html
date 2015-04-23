@@ -752,7 +752,7 @@
         plot.addDataPointListener(function(pointData, event) {
           if (event && event.actionName == "click") {
             dateAxis.setCursorPosition(null);
-            var pointDataDateObj = new Date(pointData.dateString);
+            var pointDataDateObj = new Date(pointData.dateString.split(".")[0]);
             var commentDate = $.datepicker.formatDate('yy-mm-dd', pointDataDateObj);
             if (commentDate != currentDate) {
               var path = cached_breathecam.datasets[commentDate];
@@ -981,7 +981,7 @@
   <body>
     <table id="page_container" border="0" cellspacing="0" cellpadding="0">
       <tr class="page_row">
-        <td colspan="2">
+        <td colspan="2" height="50%">
           <div id="container">
             <div id="loading">
               <img id="loadingImg" src="assets/images/loading.gif" width="358" height="250" alt="loading">
@@ -1015,9 +1015,10 @@
         </td>
       </tr>
       <tr class="page_row">
-        <td valign="top" width="50%"><table id="grapher" border="0" cellspacing="0" cellpadding="0"></table></td>
-        <td valign="top" width="100px" ><div id="map-canvas"></div></td>
+        <td valign="top" width="50%" height="50%"><table id="grapher" border="0" cellspacing="0" cellpadding="0"></table></td>
+        <td valign="top" width="100px" height="50%"><div id="map-canvas"></div></td>
       </tr>
     </table>
+    <div style="font-family: Custom-Calibri;">.</div>
   </body>
 </html>

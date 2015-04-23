@@ -84,7 +84,7 @@ function paintPM25(site, channelName, epochTime) {
 
   var pm25 = getData(site, channel, epochTime);
 
-  if (pm25 !== null) {
+  if (pm25 !== null && isFinite(pm25)) {
     context.fillStyle = 'rgba(' + site.channels[channelName].graphMetaData.color + ', 1)';
     context.fillRect(x - bar_width, y, bar_width, -bar_scale * pm25 * y_scale);
     context.strokeStyle = 'black';

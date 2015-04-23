@@ -6,6 +6,11 @@ html, body {
   overflow: hidden;
 }
 
+@font-face {
+ font-family: Custom-Calibri;
+ src: url("fonts/Calibri.ttf");
+}
+
 @-ms-viewport {
   width: device-width;
 }

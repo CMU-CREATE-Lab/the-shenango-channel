@@ -68,7 +68,7 @@ var smellData = {
 
 function initSmells() {
   // initialize the canvasLayer
-  console.log("init smells");
+  //console.log("init smells");
   var smellCanvasLayerOptions = {
     map: map,
     animate: false,
@@ -185,6 +185,7 @@ function addSmellReportsToGrapher() {
   series[i].id = i;
   var commentNumberAxis;
   var plots = [];
+  var lastHighlightDate = null;
 
   for (var rating in commentDataByRating) {
     (function(rating){
@@ -216,14 +217,17 @@ function addSmellReportsToGrapher() {
       var plot = new DataSeriesPlot(commentDatasource, dateAxis, series[i].axis, {});
 
       plot.addDataPointListener(function(pointData, event) {
-        if (event && event.actionName == "click") {
+        if (pointData && event && event.actionName == "highlight") {
+          lastHighlightDate = pointData.date;
+        } else if (event && event.actionName == "click") {
           dateAxis.setCursorPosition(null);
+          if (lastHighlightDate !== pointData.date) return;
           var selectedPoint = findPoint(pointData.date);
           if (selectedPoint) {
             var latLngArray = selectedPoint[selectedPoint.length - 1].split(",");
             var latLng = new google.maps.LatLng(latLngArray[0], latLngArray[1]);
             map.panTo(latLng);
-            map.setZoom(15);
+            map.setZoom(14);
           }
           var pointDataDateObj = new Date(pointData.dateString.split(".")[0]);
           var commentDate = $.datepicker.formatDate('yy-mm-dd', pointDataDateObj);
@@ -237,7 +241,6 @@ function addSmellReportsToGrapher() {
             });
             $("#datepicker").datepicker("setDate", pointDataDateObj);
           } else {
-            var desiredDateString = pointData.dateString.split(", ")[1].substr(0, 8);
             var closestDesiredFrame = timelapse.findExactOrClosestCaptureTime(pointData.dateString, "up");
             timelapse.seekToFrame(closestDesiredFrame);
           }
@@ -321,7 +324,7 @@ function findPoint(searchElement) {
 }
 
 function repaintSmellCanvasLayer() {
-  console.log('draw smells');
+  //console.log('draw smells');
   var captureTime = timelapse.getCurrentCaptureTime();
 
   if (!captureTime) return;
@@ -362,8 +365,7 @@ function repaintSmellCanvasLayer() {
         if (txt && smellCanvasContext.globalAlpha > 0) {
           smellCanvasContext.globalAlpha = 1;
           smellCanvasContext.fillStyle = 'white';
-          var font = "0.8pt Calibri";
-          smellCanvasContext.font = font;
+          smellCanvasContext.font = "1.3pt Custom-Calibri";
           smellCanvasContext.textBaseline = 'top';
           var words = txt.split(' ');
           var line = '';
@@ -379,7 +381,7 @@ function repaintSmellCanvasLayer() {
             testWidth = metrics.width;
             if (testWidth > 14 && n > 0) {
               line = words[n] + ' ';
-              yPos += 1.2;
+              yPos += 1.8;
             } else {
               line = testLine;
             }
@@ -390,7 +392,7 @@ function repaintSmellCanvasLayer() {
           if (boxWidth > 13.8) boxWidth = 13.8;
 
           // Set box width and height
-          smellCanvasContext.fillRect(centerX - 0.2, centerY, boxWidth, (yPos - extra + 1.5));
+          smellCanvasContext.fillRect(centerX - 0.2, centerY, boxWidth, (yPos - extra + 3.0));
           smellCanvasContext.fillStyle = 'black';
 
           // Draw text with word wrap
@@ -404,7 +406,7 @@ function repaintSmellCanvasLayer() {
             if (testWidth > 14 && n > 0) {
               smellCanvasContext.fillText(line, xPos, yPos);
               line = words[n] + ' ';
-              yPos += 1.2;
+              yPos += 1.8;
             } else {
               line = testLine;
             }
