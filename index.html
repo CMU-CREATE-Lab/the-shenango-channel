@@ -471,6 +471,8 @@
           showLogoOnDefaultUI: false,
           datasetType: "breathecam",
           onTimeMachinePlayerReady: function(viewerDivId) {
+            repaintCanvasLayer();
+            repaintSmellCanvasLayer();
             // Time Machine Listeners
             timelapse.addTimeChangeListener(function(videoTime) {
               //console.log(timelapse.getCurrentCaptureTime(), videoTime);
