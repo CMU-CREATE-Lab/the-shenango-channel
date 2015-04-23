@@ -7,6 +7,7 @@ var tweleveHoursInSecs = 43200;
 var smellReporterArray = [];
 var commentData = [];
 var commentDataByRating;
+var smellReportPrependText = " out of 5 rating. "
 var smellData = {
   "LA": {
     id: "16YI2PPXCWgqC0RL8LcAFlHqcnHoaVuo_5n4EHrUFmVI",
@@ -169,8 +170,7 @@ function addSmellReportsToGrapher() {
       // TODO: Deal with comment overlaps
       //var dataPoint = findPoint(timestamp);
       //if (dataPoint) mean = 1.1
-      var notes = smellReports[timestamp].notes;
-      if (!notes) notes = "No notes";
+      var notes = smellReports[timestamp].rating + smellReportPrependText + smellReports[timestamp].notes;
       var dataObj = [timestamp, mean, 0, 1, ((new Date(timestamp * 1000)).toTimeString().substring(0,8)) + " - " + notes, smellReports[timestamp].latLng];
       commentDataByRating[smellReports[timestamp].rating].push(dataObj);
       commentData.push(dataObj);
@@ -361,7 +361,7 @@ function repaintSmellCanvasLayer() {
         smellCanvasContext.fill();
 
         // Added text box next to smell circle
-        var txt = smellReport.notes;
+        var txt = smellReport.rating + smellReportPrependText + smellReport.notes;
         if (txt && smellCanvasContext.globalAlpha > 0) {
           smellCanvasContext.globalAlpha = 1;
           smellCanvasContext.fillStyle = 'white';
