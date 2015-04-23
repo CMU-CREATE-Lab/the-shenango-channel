@@ -161,7 +161,7 @@ function getData(site, channel, time) {
     //console.log(channel);
     if (!channel) return null;
     if (channel.hourly) {
-      time = Math.floor((time - 1800) / 3600) * 3600 + 1800;
+      time = Math.floor(time / 3600) * 3600;
       //console.log('Hourly; adjusted time to ' + time);
       var ret = channel.summary[time];
       //console.log('Value is ' + ret);

@@ -681,7 +681,8 @@
           for (var j = 1; j < csvLineAsArray.length; j++) {
             var tmpChannelHeading = headingsArray[j].split(".");
             var channelHeading = tmpChannelHeading[tmpChannelHeading.length - 1];
-            sensor.channels[channelHeading].summary[csvLineAsArray[0]] = parseFloat(csvLineAsArray[j]);
+            var timeStamp = sensor.channels[channelHeading].hourly ? (csvLineAsArray[0] - 1800): csvLineAsArray[0];
+            sensor.channels[channelHeading].summary[timeStamp] = parseFloat(csvLineAsArray[j]);
           }
         }
       }
