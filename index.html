@@ -227,6 +227,26 @@
           fullTimeRange: {}
         },
         Speck1 : {
+          feed_id: 4315,
+          coordinates : {
+            latitude: 40.499767,
+            longitude: -80.068
+          },
+          requested_day: {},
+          api_key: "10a87f12202b19fc32273b8681ea3ce612cae0472eba3497dda5c96d814f66c8",
+          channels: {
+            particle_concentration : {
+              show_graph: true,
+              graphMetaData : {
+                label: "Avalon Speck - <br> PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
+                color: "127, 57, 148"
+              },
+              summary: {}
+            }
+          },
+          fullTimeRange: {}
+        },
+        Speck1b : {
           feed_id: 4615,
           coordinates : {
             latitude: 40.499767,
@@ -258,7 +278,7 @@
             particle_concentration : {
               show_graph: true,
               graphMetaData : {
-                label: "Bellevue Speck - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
+                label: "Bellevue Speck 2 - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
                 color: "201, 23, 30"
               },
               summary: {}
@@ -279,6 +299,26 @@
               show_graph: true,
               graphMetaData : {
                 label: "Ben Avon Speck - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
+                color: "230, 120, 26"
+              },
+              summary: {}
+            }
+          },
+          fullTimeRange: {}
+        },
+        Speck3b : {
+          feed_id: 4616,
+          coordinates : {
+            latitude: 40.508,
+            longitude: -80.076
+          },
+          requested_day: {},
+          api_key: "4b0f52af05a2ac8354663b00eb61d80015b6a49e2b20b7094a8c137f2535055d",
+          channels: {
+            particle_concentration : {
+              show_graph: true,
+              graphMetaData : {
+                label: "Ben Avon Speck 2 - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
                 color: "230, 120, 26"
               },
               summary: {}
@@ -696,11 +736,12 @@
             if (clampTimeout) return;
             clampTimeout = window.setTimeout(function() {
               for (var seriesCount = 0; seriesCount < series.length; seriesCount++) {
-                clampNumberAxisToDataRange(seriesCount);
+                var plots = series[seriesCount].p;
+                clampNumberAxisToDataRange(plots, seriesCount);
               }
               window.clearTimeout(clampTimeout);
               clampTimeout = null;
-            }, 350);
+            }, 150);
           });
           dateAxis.setMaxRange(null, endTime);
           setGraphTimeRange(pageLoadDate);
@@ -713,21 +754,24 @@
         }
 
         // Add charts
-        var i = series.length;
-        series[i] = {};
-        series[i].id = i;
-
+        var seriesIdx = series.length;
         var color_line = "rgb(" + feed.channels[channelName].graphMetaData.color + ")";
         var color_fill = "rgba(" + feed.channels[channelName].graphMetaData.color + ",1)";
 
-        var row = $('<tr class="chart grapher_row"' + 'data-channel=' + channelName + '></tr>');
-        row.append('<td class="chartTitle" style="background:' + color_fill + '">' + feed.channels[channelName].graphMetaData.label + '</td>');
-        row.append('<td id="series' + i + '" class="chartContent"></td>');
-        row.append('<td id="series' + i + 'axis" class="chartAxis"></td>');
-
-        $('#grapher').append(row);
-
-        series[i].axis = new NumberAxis('series' + i + 'axis', "vertical");
+        if (feed.feed_id == 4615) {
+          seriesIdx = 2;
+        } else if (feed.feed_id == 4616) {
+          seriesIdx = 4;
+        } else {
+          series[seriesIdx] = {};
+          series[seriesIdx].id = seriesIdx;
+          var row = $('<tr class="chart grapher_row"' + 'data-channel=' + channelName + '></tr>');
+          row.append('<td class="chartTitle" style="background:' + color_fill + '">' + feed.channels[channelName].graphMetaData.label + '</td>');
+          row.append('<td id="series' + seriesIdx + '" class="chartContent"></td>');
+          row.append('<td id="series' + seriesIdx + 'axis" class="chartAxis"></td>');
+          $('#grapher').append(row);
+          series[seriesIdx].axis = new NumberAxis('series' + seriesIdx + 'axis', "vertical");
+        }
 
         var datasource;
         (function(source) {
@@ -741,8 +785,7 @@
             });
           };
         })(channelName);
-
-        var plot = new DataSeriesPlot(datasource, dateAxis, series[i].axis, {});
+        var plot = new DataSeriesPlot(datasource, dateAxis, series[seriesIdx].axis, {});
 
         plot.addDataPointListener(function(pointData, event) {
           if (event && event.actionName == "click") {
@@ -763,11 +806,10 @@
           }
         });
 
-        series[i].p = plot;
         plot.setStyle({
           "styles": [
-            { "type" : "line", "lineWidth" : 1, "show" : true, "color" : color_line },
-            { "type" : "circle", radius : 1, "lineWidth" : 1, "show" : true, "color" : color_line, fill : true }
+            { "type" : "line", "lineWidth" : 1, "show" : true, "color" : color_line }/*,
+            { "type" : "circle", radius : 1, "lineWidth" : 1, "show" : true, "color" : color_line, fill : true }*/
           ],
           "highlight" : {
             "lineWidth" : 1,
@@ -800,33 +842,53 @@
             ]
           }
         });
-        series[i].pc = new PlotContainer("series" + i, false, [plot]);
+
+        if (feed.feed_id == 4615 || feed.feed_id == 4616) {
+          series[seriesIdx].pc.addPlot(plot);
+        } else {
+          series[seriesIdx].p = [];
+          series[seriesIdx].pc = new PlotContainer("series" + seriesIdx, false, [plot]);
+        }
+        series[seriesIdx].p.push(plot);
+
         setSizes();
-        series[i].loadingIntervalCount = 0;
-        series[i].checkPlotLoadedInterval = setInterval(function(){
-          clampNumberAxisToDataRange(i);
-          series[i].loadingIntervalCount++;
+
+        var plotIdx = series[seriesIdx].p.length - 1;
+        if (!series[seriesIdx].loadingIntervalCounts) {
+          series[seriesIdx].loadingIntervalCounts = {};
+          series[seriesIdx].checkPlotLoadedIntervals = {};
+        }
+        series[seriesIdx].loadingIntervalCounts[plotIdx] = 0;
+        series[seriesIdx].checkPlotLoadedIntervals[plotIdx] = setInterval(function(){
+          clampNumberAxisToDataRange(series[seriesIdx].p, seriesIdx);
+          series[seriesIdx].loadingIntervalCounts[plotIdx]++;
         }, 100);
+
       };
 
-      function clampNumberAxisToDataRange(seriesIndex) {
-        if (!series[seriesIndex]) return;
-
-        if (series[seriesIndex].loadingIntervalCount >= 20) {
-          clearInterval(series[seriesIndex].checkPlotLoadedInterval);
+      function clampNumberAxisToDataRange(plots, seriesIdx) {
+        var stats, min = 9999, max = -9999;
+        if (plots.constructor === Array) {
+          for (var i = 0; i < plots.length; i++) {
+            if (series[seriesIdx].loadingIntervalCounts && series[seriesIdx].loadingIntervalCounts[i] >= 20) {
+              clearInterval(series[seriesIdx].checkPlotLoadedIntervals[i]);
+            }
+            stats = plots[i].getSimpleStatistics(dateAxis.getMin(), dateAxis.getMax());
+            if (min > stats.y_min) min = stats.y_min;
+            if (max < stats.y_max) max = stats.y_max;
+          }
+        } else {
+          if (series[seriesIdx].loadingIntervalCounts[0] >= 20) {
+            clearInterval(series[seriesIdx].checkPlotLoadedIntervals[0]);
+          }
+          stats = plots.getSimpleStatistics(dateAxis.getMin(), dateAxis.getMax());
+          min = stats.y_min;
+          max = stats.y_max;
         }
 
-        var plots = series[seriesIndex].p;
-        if (!plots) return;
-        if (plots.constructor !== Array) plots = [plots];
-
-        for (var i = 0; i < plots.length; i++) {
-          var plot = plots[i];
-          var stats = plot.getSimpleStatistics(dateAxis.getMin(), dateAxis.getMax());
-          if (stats.has_data && typeof stats.y_min !== 'undefined' && typeof stats.y_max !== 'undefined') {
-            var paddedRange = paddedYAxisRange(stats.y_min, stats.y_max);
-            series[seriesIndex].axis.setRange(paddedRange.min, paddedRange.max);
-          }
+        if (stats.has_data && typeof stats.y_min !== 'undefined' && typeof stats.y_max !== 'undefined') {
+          var paddedRange = paddedYAxisRange(min, max);
+          series[seriesIdx].axis.setRange(paddedRange.min, paddedRange.max);
         }
       }
 
