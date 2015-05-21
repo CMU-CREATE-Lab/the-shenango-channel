@@ -313,7 +313,8 @@ function addSmellReportsToGrapher() {
   series[i].pc = new PlotContainer("series" + i, false, plots);
   setSizes();
   // Boo, grapher hacks abound...
-  window.setInterval(function() {
+
+  var handleGWTPopup = function() {
     var $gwtPopupPanels = $(".gwt-PopupPanel");
     if ($gwtPopupPanels.length > 0) {
       if (!isHighlighting && $gwtPopupPanels.length == 1) {
@@ -326,7 +327,9 @@ function addSmellReportsToGrapher() {
         });
       }
     }
-  }, 1);
+    window.requestAnim(handleGWTPopup);
+  };
+  window.requestAnim(handleGWTPopup);
 }
 
 function findPoint(searchElement) {

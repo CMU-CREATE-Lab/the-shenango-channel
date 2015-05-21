@@ -1070,6 +1070,17 @@
         setSizes();
         google.maps.event.trigger(map, 'resize');
       });
+
+      window.requestAnim =
+        window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.oRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        function(callback) {
+          return window.setTimeout(callback, 10);
+        };
+
     </script>
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
