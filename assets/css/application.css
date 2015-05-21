@@ -8,7 +8,7 @@ html, body {
 
 @font-face {
  font-family: Custom-Calibri;
- src: url("fonts/Calibri.ttf");
+ src: local("Calibri"), url("fonts/Calibri.eot"), url("fonts/Calibri.woff") format("woff"), url("fonts/Calibri.ttf") format("truetype");
 }
 
 @-ms-viewport {

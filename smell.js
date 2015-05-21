@@ -7,7 +7,10 @@ var tweleveHoursInSecs = 43200;
 var smellReporterArray = [];
 var commentData = [];
 var commentDataByRating;
-var smellReportPrependText = " out of 5 rating. "
+var smellReportPrependText = " out of 5 rating. ";
+var gwtPopUpText = "";
+var isHighlighting = false;
+
 var smellData = {
   "LA": {
     id: "16YI2PPXCWgqC0RL8LcAFlHqcnHoaVuo_5n4EHrUFmVI",
@@ -217,11 +220,14 @@ function addSmellReportsToGrapher() {
       var plot = new DataSeriesPlot(commentDatasource, dateAxis, series[i].axis, {});
 
       plot.addDataPointListener(function(pointData, event) {
+        isHighlighting = false;
         if (pointData && event && event.actionName == "highlight") {
+          isHighlighting = true;
           lastHighlightDate = pointData.date;
         } else if (event && event.actionName == "click") {
-          dateAxis.setCursorPosition(null);
           if (lastHighlightDate !== pointData.date) return;
+          fixedCursorPosition = lastHighlightDate;
+          gwtPopUpText = pointData.comment;
           var selectedPoint = findPoint(pointData.date);
           if (selectedPoint) {
             var latLngArray = selectedPoint[selectedPoint.length - 1].split(",");
@@ -257,7 +263,12 @@ function addSmellReportsToGrapher() {
         pointColor = ratingColor;
       }
 
+      var cursorColor = (plots.length > 0) ? "rgba(0,0,0,0)" : "#2A2A2A";
       plot.setStyle({
+        "cursor" : {
+          "color" : cursorColor,
+          "lineWidth" : 1
+        },
         "styles" : [
           {
              "type" : "point",
@@ -297,11 +308,25 @@ function addSmellReportsToGrapher() {
       plots.push(plot);
       series[i].p = plots;
     })(rating);
-
-
   }
+
   series[i].pc = new PlotContainer("series" + i, false, plots);
   setSizes();
+  // Boo, grapher hacks abound...
+  window.setInterval(function() {
+    var $gwtPopupPanels = $(".gwt-PopupPanel");
+    if ($gwtPopupPanels.length > 0) {
+      if (!isHighlighting && $gwtPopupPanels.length == 1) {
+        gwtPopUpText = $gwtPopupPanels.text();
+      }
+      if ($gwtPopupPanels.length == 2 || fixedCursorPosition < dateAxis.getMin() || fixedCursorPosition > dateAxis.getMax()) {
+        $gwtPopupPanels.each(function() {
+          if ($(this).text() == gwtPopUpText)
+            $(this).hide();
+        });
+      }
+    }
+  }, 1);
 }
 
 function findPoint(searchElement) {

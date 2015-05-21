@@ -193,6 +193,7 @@
       var currentDate;
       var ESDR_API_ROOT_URL = 'http://esdr.cmucreatelab.org/api/v1';
       var clampTimeout = null;
+      var fixedCursorPosition;
 
       var esdr_feeds = {
         ACHD_Avalon : {
@@ -507,7 +508,10 @@
             repaintSmellCanvasLayer();
             // Time Machine Listeners
             timelapse.addTimeChangeListener(function(videoTime) {
-              //console.log(timelapse.getCurrentCaptureTime(), videoTime);
+              if (dateAxis) {
+                fixedCursorPosition = Date.parse(timelapse.getCurrentCaptureTime().replace(/-/g, "/")) / 1000;
+                dateAxis.setCursorPosition(fixedCursorPosition);
+              }
               repaintCanvasLayer();
               repaintSmellCanvasLayer();
             });
@@ -732,7 +736,26 @@
             min: startTime,
             max: endTime
           });
-          dateAxis.addAxisChangeListener(function() {
+          dateAxis.setCursorColor("#1A1A1A");
+          dateAxis.addAxisChangeListener(function(e) {
+            // Boo, grapher hacks abound...
+            var $gwtPopupPanels = $(".gwt-PopupPanel");
+            if ($gwtPopupPanels.length && (fixedCursorPosition < dateAxis.getMin() || fixedCursorPosition > dateAxis.getMax())) {
+              $gwtPopupPanels.each(function() {
+                if ($(this).text() == gwtPopUpText) {
+                  $(this).hide();
+                } else if ($gwtPopupPanels.length == 1) {
+                  $(this).show();
+                }
+              });
+            }
+            if (e) {
+              var cursorPosition = e.cursorPosition;
+              if (fixedCursorPosition != cursorPosition) {
+                // Reset the cursor position
+                dateAxis.setCursorPosition(fixedCursorPosition);
+              }
+            }
             if (clampTimeout) return;
             clampTimeout = window.setTimeout(function() {
               for (var seriesCount = 0; seriesCount < series.length; seriesCount++) {
@@ -746,6 +769,13 @@
           dateAxis.setMaxRange(null, endTime);
           setGraphTimeRange(pageLoadDate);
           addSmellReportsToGrapher();
+          if (timelapse) {
+            var currentCaptureTime = timelapse.getCurrentCaptureTime();
+            if (currentCaptureTime) {
+              fixedCursorPosition = Date.parse(currentCaptureTime.replace(/-/g, "/")) / 1000;
+              dateAxis.setCursorPosition(fixedCursorPosition);
+            }
+          }
         }
 
         // Set max range of all the graphs
@@ -777,6 +807,8 @@
         (function(source) {
           datasource = function(level, offset, successCallback, failureCallback) {
             $.ajax({
+              type: "GET",
+              dataType: "json",
               url: ESDR_API_ROOT_URL + "/feeds/" + feedAPIKey + "/channels/" + source + "/tiles/" + level + "." + offset,
               success: function(json) {
                 successCallback(JSON.stringify(json.data));
@@ -788,8 +820,9 @@
         var plot = new DataSeriesPlot(datasource, dateAxis, series[seriesIdx].axis, {});
 
         plot.addDataPointListener(function(pointData, event) {
-          if (event && event.actionName == "click") {
-            dateAxis.setCursorPosition(null);
+          if (!event) return;
+          if (event.actionName == "click") {
+            fixedCursorPosition = pointData.date;
             var pointDataDateObj = new Date(pointData.dateString.split(".")[0]);
             var commentDate = $.datepicker.formatDate('yy-mm-dd', pointDataDateObj);
             if (commentDate != currentDate) {
@@ -806,7 +839,12 @@
           }
         });
 
+        var cursorColor = (feed.feed_id == 4615 || feed.feed_id == 4616) ? "rgba(0,0,0,0)" : "#2A2A2A";
         plot.setStyle({
+          "cursor" : {
+            "color" : cursorColor,
+            "lineWidth" : 1
+          },
           "styles": [
             { "type" : "line", "lineWidth" : 1, "show" : true, "color" : color_line }/*,
             { "type" : "circle", radius : 1, "lineWidth" : 1, "show" : true, "color" : color_line, fill : true }*/
@@ -815,29 +853,23 @@
             "lineWidth" : 1,
             "styles" : [
                {
-                  "show" : true,
-                  "type" : "lollipop",
-                  "color" : "#000000",
-                  "radius" : 0,
-                  "lineWidth" : 1,
-                  "fill" : false
-               },
-               {
                   "type" : "circle",
-                  radius : 3,
+                  radius : 3.5,
                   "lineWidth" : 0.5,
                   "show" : true,
-                  "color" : "#ff0000",
-                  fill : false
+                  "color" : "#2A2A2A",
+                  fill : true,
+                  fillColor: "#2A2A2A"
                },
                {
                   "show" : true,
                   "type" : "value",
                   "fillColor" : "#000000",
                   "marginWidth" : 10,
-                  "font" : "10pt Helvetica,Arial,Verdana,sans-serif",
-                  "verticalOffset" : 7,
-                  "numberFormat" : "###,##0"
+                  "font" : "12pt Helvetica,Arial,Verdana,sans-serif",
+                  "verticalOffset" : 5,
+                  "horizontalOffset" : 12,
+                  "numberFormat" : "###,##0.#"
                }
             ]
           }
@@ -976,6 +1008,8 @@
           for (var i = 0; i < feedNames.length; i++) {
             (function(i){
               $.ajax({
+                type: "GET",
+                dataType: "json",
                 url: ESDR_API_ROOT_URL + '/feeds/' + esdr_feeds[feedNames[i]].api_key,
                 success: function(json) {
                   esdr_feeds[feedNames[i]].fullTimeRange.min = json.data.minTimeSecs;
