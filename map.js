@@ -80,7 +80,7 @@ function paintPM25(site, channelName, epochTime) {
   var offset1mile = mapProjection.fromLatLngToPoint(new google.maps.LatLng(site.coordinates.latitude + 0.014457067, site.coordinates.longitude));
   var unitsPerMile = 1000 * (worldPoint.y - offset1mile.y);
 
-  y_scale = site['flip_y'] ? -1 : 1;
+  y_scale = site.flip_y ? -1 : 1;
 
   var pm25 = getData(site, channel, epochTime);
 
@@ -94,9 +94,9 @@ function paintPM25(site, channelName, epochTime) {
   }
 
   var wind_speed, wind_dir;
-  if (site.channels["SONICWS_MPH"]) {
-    wind_speed = getData(site, site.channels["SONICWS_MPH"], epochTime);
-    wind_dir = getData(site, site.channels["SONICWD_DEG"], epochTime);
+  if (site.channels.SONICWS_MPH) {
+    wind_speed = getData(site, site.channels.SONICWS_MPH, epochTime);
+    wind_dir = getData(site, site.channels.SONICWD_DEG, epochTime);
   }
 
   if (wind_speed && wind_dir) {
