@@ -614,11 +614,12 @@
               setupTimelapse(startingDataset, startingDate);
               return;
             }
-            updateCalendarAndToggleUI(locationName, startingDate);
+            updateCalendarAndToggleUI(startingDate);
+            setGraphTimeRange(startingDate);
             if (doLoad) {
               if (timelapse && startingDataset) {
                 newTime = parseFloat(newTime);
-                timelapse.loadTimelapse(startingDataset, newView, newTime, false, null, function() {
+                timelapse.loadTimelapse(startingDataset, newView, newTime, true, null, function() {
                   if (isNaN(newTime)) {
                     var numFrames = timelapse.getNumFrames();
                     // 12 fps * 5 seconds = 60 frames
@@ -974,7 +975,7 @@
         setLocationThumbnailToggle();
         $(".location_thumbnail_container").on("click", function() {
           window.location.hash = "";
-          changeLocation($(this).attr("data-location-id"), null, null, null, true);
+          changeLocation($(this).attr("data-location-id"), currentDate, null, timelapse.getCurrentTime(), true);
         });
         if ((!timelapseSupported || typeof (cached_breathecam) === "undefined") && stitchedImage === "") {
           // Nothing is up. Hide containers and inform the user
