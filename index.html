@@ -253,6 +253,7 @@
             latitude: 40.499767,
             longitude: -80.068
           },
+          isDouble: true,
           requested_day: {},
           api_key: "ab8326a706346a2e44badbdb764320f0760f9b950c99a5406bbea3498635bcd4",
           channels: {
@@ -275,6 +276,27 @@
           },
           requested_day: {},
           api_key: "3c9286797e517dacd885309bb8e88a1309a9bdd0e7655bcfa1c47fa47f7c7b76",
+          channels: {
+            particle_concentration : {
+              show_graph: true,
+              graphMetaData : {
+                label: "Bellevue Speck - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
+                color: "201, 23, 30"
+              },
+              summary: {}
+            }
+          },
+          fullTimeRange: {}
+        },
+        Speck2b : {
+          feed_id: 4711,
+          coordinates : {
+            latitude: 40.501,
+            longitude: -80.061
+          },
+          isDouble: true,
+          requested_day: {},
+          api_key: "39c80375a56564c06c9faea157aeeecdded2ac5bc2cc14c812cab23682af16f4",
           channels: {
             particle_concentration : {
               show_graph: true,
@@ -313,6 +335,7 @@
             latitude: 40.508,
             longitude: -80.076
           },
+          isDouble: true,
           requested_day: {},
           api_key: "4b0f52af05a2ac8354663b00eb61d80015b6a49e2b20b7094a8c137f2535055d",
           channels: {
@@ -791,6 +814,8 @@
 
         if (feed.feed_id == 4615) {
           seriesIdx = 2;
+        } else if (feed.feed_id == 4711) {
+          seriesIdx = 3;
         } else if (feed.feed_id == 4616) {
           seriesIdx = 4;
         } else {
@@ -840,7 +865,7 @@
           }
         });
 
-        var cursorColor = (feed.feed_id == 4615 || feed.feed_id == 4616) ? "rgba(0,0,0,0)" : "#2A2A2A";
+        var cursorColor = (feed.isDouble) ? "rgba(0,0,0,0)" : "#2A2A2A";
         plot.setStyle({
           "cursor" : {
             "color" : cursorColor,
@@ -876,7 +901,7 @@
           }
         });
 
-        if (feed.feed_id == 4615 || feed.feed_id == 4616) {
+        if (feed.isDouble) {
           series[seriesIdx].pc.addPlot(plot);
         } else {
           series[seriesIdx].p = [];
