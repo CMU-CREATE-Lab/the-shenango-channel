@@ -587,7 +587,7 @@
         $("#content").css("visibility", "visible");
       }
 
-      function changeLocation(locationName, newDate, newView, newTime, doLoad, callBack) {
+      function changeLocation(locationName, newDate, newView, newTime, doLoad, callBack, newTimeAsDateObj) {
         currentLocation = locationName;
         if (timelapseFeedUnavailable) {
           location.href = "/embeds/" + locationName;
@@ -619,8 +619,8 @@
             if (doLoad) {
               if (timelapse && startingDataset) {
                 newTime = parseFloat(newTime);
-                timelapse.loadTimelapse(startingDataset, newView, newTime, true, null, function() {
-                  if (isNaN(newTime)) {
+                timelapse.loadTimelapse(startingDataset, newView, newTime, false, newTimeAsDateObj, function() {
+                  if (!newTimeAsDateObj && isNaN(newTime)) {
                     var numFrames = timelapse.getNumFrames();
                     // 12 fps * 5 seconds = 60 frames
                     var fiveSecondsFromEnd = numFrames - 60;
@@ -974,8 +974,12 @@
         locationDivId = "shenango1" + "_overlay";
         setLocationThumbnailToggle();
         $(".location_thumbnail_container").on("click", function() {
-          window.location.hash = "";
-          changeLocation($(this).attr("data-location-id"), currentDate, null, timelapse.getCurrentTime(), true);
+          if (window.location.hash)
+            window.location.hash = "";
+          var newLocation = $(this).attr("data-location-id");
+          if (timelapse)
+            var captureTimeAsDateObj = new Date(timelapse.getCurrentCaptureTime().replace(/-/g,"/"));
+          changeLocation(newLocation, currentDate, null, null, true, null, captureTimeAsDateObj);
         });
         if ((!timelapseSupported || typeof (cached_breathecam) === "undefined") && stitchedImage === "") {
           // Nothing is up. Hide containers and inform the user
