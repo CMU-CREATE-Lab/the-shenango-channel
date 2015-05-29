@@ -12,23 +12,6 @@
  *    }
  */
 
-body, table td, select {
-  font-family: Arial Unicode MS, Arial, sans-serif;
-  font-size: small;
-}
-pre {
-  font-family: "courier new", courier;
-  font-size: small;
-}
-body {
-  color: black;
-  margin: 0px;
-  border: 0px;
-  padding: 0px;
-  background: #fff;
-  direction: ltr;
-}
-
 /**
  * The reference theme can be used to determine when this style sheet has
  * loaded.  Create a hidden div element with absolute position, assign the style
@@ -201,7 +184,7 @@ body {
 .gwt-DisclosurePanel .header a,
 .gwt-DisclosurePanel .header td {
   text-decoration: none;  /* Remove underline from header */
-  color: black; 
+  color: black;
   cursor: pointer;
   cursor: hand;
 }
@@ -225,7 +208,7 @@ body {
 }
 .gwt-HorizontalSplitPanel .hsplitter {
   cursor: move;
-  border: 0px; 
+  border: 0px;
   background: #91c0ef url(images/vborder.png) repeat-y;
   line-height: 0px;
 }
@@ -233,7 +216,7 @@ body {
 }
 .gwt-VerticalSplitPanel .vsplitter {
   cursor: move;
-  border: 0px; 
+  border: 0px;
   background: #91c0ef url(images/hborder.png) repeat-x;
   line-height: 0px;
 }
@@ -286,7 +269,7 @@ body {
 .gwt-MenuBar-horizontal .gwt-MenuItemSeparator .menuSeparatorInner {
   width: 1px;
   height: 1px;
-  background: white; 
+  background: white;
 }
 .gwt-MenuBar-vertical {
   margin-top: 0px;
@@ -565,25 +548,25 @@ body {
   padding: 0px 1px 0px 0px;
   margin-right: 4px;
   margin-bottom: 4px;
-  border-width: 1px; 
+  border-width: 1px;
 }
 .gwt-RichTextToolbar .gwt-PushButton-up-hovering {
   margin-right: 4px;
   margin-bottom: 4px;
   padding: 0px 1px 0px 0px;
-  border-width: 1px; 
+  border-width: 1px;
 }
 .gwt-RichTextToolbar .gwt-PushButton-down {
   margin-right: 4px;
   margin-bottom: 4px;
   padding: 0px 0px 0px 1px;
-  border-width: 1px; 
+  border-width: 1px;
 }
 .gwt-RichTextToolbar .gwt-PushButton-down-hovering {
   margin-right: 4px;
   margin-bottom: 4px;
   padding: 0px 0px 0px 1px;
-  border-width: 1px; 
+  border-width: 1px;
 }
 .gwt-RichTextToolbar .gwt-ToggleButton-up {
   margin-right: 4px;
@@ -735,7 +718,7 @@ body {
 .gwt-SuggestBoxPopup .suggestPopupTopLeftInner {
   width: 5px;
   height: 5px;
-  zoom: 1;  
+  zoom: 1;
 }
 .gwt-SuggestBoxPopup .suggestPopupTopRightInner {
   width: 8px;
@@ -809,7 +792,7 @@ body {
 .gwt-TabBar .gwt-TabBarItem-selected {
   cursor: default;
   background: #92c1f0;
-} 
+}
 .gwt-TabBar .gwt-TabBarItem-disabled {
   cursor: default;
   color: #999999;
