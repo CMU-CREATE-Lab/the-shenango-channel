@@ -1032,7 +1032,6 @@
           // Show timelapse
           tm_init();
         }
-        $("#container").on("mousedown", function() { return false; });
 
         // Initialize Map
         initMap('map-canvas');
@@ -1134,12 +1133,12 @@
             <div id="loading">
               <img id="loadingImg" src="assets/images/loading.gif" width="358" height="250" alt="loading">
             </div>
-            <div id="locationTitle"></div>
+            <div id="locationTitle" class="no-select"></div>
             <div id="timelapse_feed" class="timelapse_feed_embed">
               <div id="timeMachine"></div>
-              <div id="datepicker" class="datepicker_embed"></div>
+              <div id="datepicker" class="datepicker_embed no-select"></div>
             </div>
-            <div id="image_feed" class="image_feed_embed">
+            <div id="image_feed" class="image_feed_embed no-select">
               <div id="stitched_image_wrapper" class="image-zoom-wrapper image-zoom-wrapper-embed">
                 <div id="zoom-in" title="Zoom in"><p>+</p></div>
                 <div id="zoom-out" title="Zoom out"><p>_</p></div>
@@ -1147,7 +1146,7 @@
                 <span id="image_feed_timestamp">03/09/2015 03:16 PM</span>
               </div>
             </div>
-            <div id="location_toggle_container">
+            <div id="location_toggle_container" class="no-select">
               <a class="location_thumbnail_container" data-location-id="shenango1" href="javascript:void(0)">
                 <div id="shenango1_overlay" class="location_thumbnail_overlay"></div>
                 <img src="assets/images/shenango1.png" class="location_thumbnail" alt="Shenango1">
@@ -1162,7 +1161,7 @@
           </div>
         </td>
       </tr>
-      <tr class="page_row">
+      <tr class="page_row no-select">
         <td valign="top" width="50%" height="50%"><table id="grapher" border="0" cellspacing="0" cellpadding="0"></table></td>
         <td valign="top" width="100px" height="50%"><div id="map-canvas"></div></td>
       </tr>
