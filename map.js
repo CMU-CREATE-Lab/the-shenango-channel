@@ -84,6 +84,31 @@ function paintPM25(site, channelName, epochTime) {
 
   var pm25 = getData(site, channel, epochTime);
 
+  var siteDouble;
+  if (site.feed_id == 4315) {
+    siteDouble = esdr_feeds.Speck1b;
+    channel = siteDouble.channels[channelName];
+  } else if (site.feed_id == 4617) {
+    siteDouble = esdr_feeds.Speck2b;
+    channel = siteDouble.channels[channelName];
+  } else if (site.feed_id == 4316) {
+    siteDouble = esdr_feeds.Speck3b;
+    channel = siteDouble.channels[channelName];
+  }
+
+  // If a site has 2 devices, take the average
+  var numSites = 2;
+  if (siteDouble) {
+    var pm25_2 = getData(siteDouble, channel, epochTime);
+    if (pm25_2 !== null && isFinite(pm25_2)) {
+      if (pm25 === null || !isFinite(pm25)) {
+        pm25 = 0;
+        numSites -= 1;
+      }
+      pm25 = Math.round((pm25 + pm25_2) / numSites);
+    }
+  }
+
   if (pm25 !== null && isFinite(pm25)) {
     context.fillStyle = 'rgba(' + site.channels[channelName].graphMetaData.color + ', 1)';
     context.fillRect(x - bar_width, y, bar_width, -bar_scale * pm25 * y_scale);
