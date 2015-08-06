@@ -156,6 +156,25 @@
         border-top: 1px solid black;
         width: 160px;
       }
+
+      #tabs {
+        border: 0px;
+      }
+
+      .ui-tabs-nav {
+        border: 0px  !important;
+        background: #ccc  !important;
+        border-radius: 0px  !important;
+      }
+
+      .ui-tabs-nav .ui-state-default {
+        background: #EAEAEA !important;
+      }
+
+      .ui-tabs-nav .ui-tabs-active {
+        background: white  !important;
+      }
+
     </style>
 
     <link href="assets/timemachine-viewer/css/jquery-ui/smoothness/jquery-ui.custom.css" media="screen" rel="stylesheet" type="text/css" />
@@ -202,6 +221,9 @@
       var ESDR_API_ROOT_URL = 'http://esdr.cmucreatelab.org/api/v1';
       var clampTimeout = null;
       var fixedCursorPosition;
+      var tmpCount = 0;
+      var grapherReady = false;
+      var grapherLoadedInterval = null;
 
       var esdr_feeds = {
         ACHD_Avalon : {
@@ -536,8 +558,10 @@
           datasetType: "breathecam",
           showThumbnailTool: true,
           onTimeMachinePlayerReady: function(viewerDivId) {
-            repaintCanvasLayer();
-            repaintSmellCanvasLayer();
+            if (canvasLayer)
+              repaintCanvasLayer();
+            if (smellCanvasLayer)
+              repaintSmellCanvasLayer();
             // Time Machine Listeners
             timelapse.addTimeChangeListener(function(videoTime) {
               if (dateAxis) {
@@ -934,18 +958,22 @@
       };
 
       function clampNumberAxisToDataRange(plots, seriesIdx) {
-        var stats, min = 9999, max = -9999;
+        var stats, tmp_stats, min = 9999, max = -9999;
+        if (!plots) return;
         if (plots.constructor === Array) {
           for (var i = 0; i < plots.length; i++) {
             if (series[seriesIdx].loadingIntervalCounts && series[seriesIdx].loadingIntervalCounts[i] >= 20) {
               clearInterval(series[seriesIdx].checkPlotLoadedIntervals[i]);
             }
-            stats = plots[i].getSimpleStatistics(dateAxis.getMin(), dateAxis.getMax());
-            if (min > stats.y_min) min = stats.y_min;
-            if (max < stats.y_max) max = stats.y_max;
+            tmp_stats = plots[i].getSimpleStatistics(dateAxis.getMin(), dateAxis.getMax());
+            if (tmp_stats.count > 0) {
+              stats = tmp_stats;
+              if (min > stats.y_min) min = stats.y_min;
+              if (max < stats.y_max) max = stats.y_max;
+            }
           }
         } else {
-          if (series[seriesIdx].loadingIntervalCounts[0] >= 20) {
+          if (series[seriesIdx].loadingIntervalCounts && series[seriesIdx].loadingIntervalCounts[0] >= 20) {
             clearInterval(series[seriesIdx].checkPlotLoadedIntervals[0]);
           }
           stats = plots.getSimpleStatistics(dateAxis.getMin(), dateAxis.getMax());
@@ -953,7 +981,7 @@
           max = stats.y_max;
         }
 
-        if (stats.has_data && typeof stats.y_min !== 'undefined' && typeof stats.y_max !== 'undefined') {
+        if (stats && stats.has_data && typeof stats.y_min !== 'undefined' && typeof stats.y_max !== 'undefined') {
           var paddedRange = paddedYAxisRange(min, max);
           series[seriesIdx].axis.setRange(paddedRange.min, paddedRange.max);
         }
@@ -974,7 +1002,7 @@
         var width = $(window).width() / 2;
         var height = $(window).height() / 2;
         if (!dateAxis) return;
-        $("#grapher").css({"width" : width + "px", "height" : height + "px"});
+        //$("#grapher").css({"width" : width + "px", "height" : height + "px"});
         $("#dateAxis").width($('.chartContent').width());
         var dateAxisWidth = $('#dateAxis').width();
         var dateAxisHeight = $('#dateAxis').height();
@@ -987,8 +1015,10 @@
           var newHeight = $('.chart').height();
           if (i === 0)
             newHeight = $('.annotationContent').height();
-          series[i].axis.setSize($('#series' + i + 'axis').width(), newHeight, SequenceNumber.getNext());
-          series[i].pc.setSize($('#series' + i).width(), newHeight, SequenceNumber.getNext());
+          if (series[i].axis)
+            series[i].axis.setSize($('#series' + i + 'axis').width(), newHeight, SequenceNumber.getNext());
+          if (series[i].pc)
+            series[i].pc.setSize($('#series' + i).width(), newHeight, SequenceNumber.getNext());
         }
       }
 
@@ -1002,6 +1032,45 @@
       }
 
       function initialize() {
+        $( "#tabs" ).tabs({
+          heightStyle: "content",
+          activate: function(event, ui) {
+            if ($(ui.newPanel)[0].id == "tabs-2") {
+              $("body, html").css("overflow", "hidden");
+              if (!timelapse) {
+                channelPageSetup();
+                $(window).resize(function() {
+                  setSizes();
+                  google.maps.event.trigger(map, 'resize');
+                });
+              } else {
+                timelapse.onresize();
+              }
+              setSizes();
+              google.maps.event.trigger(map, 'resize');
+            } else {
+              $("body, html").css("overflow", "auto");
+              // Hack for Chrome when switching tabs:
+              // Gifs stop animating unless the page changes size
+              if (tmpCount % 2 === 0)
+                $("#google-doc").width("99.9%");
+              else
+                $("#google-doc").width("100%");
+              tmpCount++;
+            }
+          }
+        });
+        if (window.location.hash.indexOf("#v=") > -1)
+          $( "#tabs" ).tabs( "option", "active", 1 );
+      }
+
+      window.grapherLoad = function() {
+        grapherReady = true;
+      };
+
+      $(initialize);
+
+      function channelPageSetup() {
         // Initialize E-Cam
         var timelapseSupported = org.gigapan.Util.browserSupported();
         var stitchedImage = "N/A";
@@ -1037,11 +1106,16 @@
         // Initialize Map
         initMap('map-canvas');
 
-        // Initialize Smells
-        initSmells();
+        grapherLoadedInterval = window.setInterval(function() {
+          if (!grapherReady) return;
 
-        // Initialize Graphs
-        window.grapherLoad = function() {
+          window.clearInterval(grapherLoadedInterval);
+          grapherLoadedInterval = null;
+
+          // Initialize Smells
+          initSmells();
+
+          // Initialize Graphs
           var feedNames = Object.keys(esdr_feeds).sort();
           for (var i = 0; i < feedNames.length; i++) {
             (function(i){
@@ -1070,41 +1144,8 @@
               });
             })(i);
           }
-        };
-
-        // Load sensor summaries (i.e. ESDR exports)
-
-        //var sensors = Object.keys(esdr_feeds);
-        //var today = new Date();
-        //var newDateString =  (today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();
-        //var firstCaptureTime = newDateString + " 00:00:00";
-        //var lastCaptureTime = newDateString + " 23:59:59";
-        //var startTime = (new Date((firstCaptureTime).replace(/-/g,"/")).getTime()) / 1000;
-        //var endTime = (new Date((lastCaptureTime).replace(/-/g,"/")).getTime()) / 1000;
-
-        //for (var i = 0; i < sensors.length; i++) {
-        //  (function(i){
-        //    var sensor = esdr_feeds[sensors[i]];
-        //    var channels = Object.keys(sensor.channels).toString();
-        //    var requestInfo = {
-        //      feed_id : sensor.feed_id,
-        //      api_key : sensor.api_key,
-        //      start_time : startTime,
-        //      end_time : endTime,
-        //      channels : channels,
-        //      headers : null
-        //    };
-        //    requestEsdrExport(requestInfo, function(csvData) {
-        //      parseEsdrCSV(csvData, sensor);
-        //    });
-        //  })(i);
-        //}
+        }, 10);
       }
-      $(initialize);
-      $(window).resize(function() {
-        setSizes();
-        google.maps.event.trigger(map, 'resize');
-      });
 
       window.requestAnim =
         window.requestAnimationFrame ||
@@ -1126,10 +1167,17 @@
       ga('send', 'pageview');
     </script>
   </head>
-  <body>
-    <table id="page_container" border="0" cellspacing="0" cellpadding="0">
-      <tr class="page_row">
-        <td colspan="2" height="50%">
+  <body style="height: 100%">
+    <div id="tabs" style="width: 100%; height: 100%; margin: 0; padding: 0px; position: absolute;">
+      <ul>
+        <li><a href="#tabs-1" style="outline:0;">Introduction by ACCAN</a></li>
+        <li><a href="#tabs-2" style="outline:0;">Shenango Channel</a></li>
+      </ul>
+      <div id="tabs-1" style="width: 100%; padding: 0px; margin: 0;">
+        <iframe id="google-doc" src="http://explorables.cmucreatelab.org/the-shenango-channel2/google-docs.php" width="100%" height="1000px" style="border: 0px;"></iframe>
+      </div>
+      <div id="tabs-2" style="width: 100%; height: 100%; margin: 0; padding: 0px">
+        <div id="foo" style="height: calc(100% - 33px)">
           <div id="container">
             <div id="loading">
               <img id="loadingImg" src="assets/images/loading.gif" width="358" height="250" alt="loading">
@@ -1160,13 +1208,11 @@
               </a>
             </div>
           </div>
-        </td>
-      </tr>
-      <tr class="page_row no-select">
-        <td valign="top" width="50%" height="50%"><table id="grapher" border="0" cellspacing="0" cellpadding="0"></table></td>
-        <td valign="top" width="100px" height="50%"><div id="map-canvas"></div></td>
-      </tr>
-    </table>
+          <div style="width:50%; height:50%; float: left"><table id="grapher" border="0" cellspacing="0" cellpadding="0"></table></div>
+          <div style="width:50%; height:50%; float: right"><div id="map-canvas"></div></div>
+          </div>
+      </div>
+    </div>
     <div style="font-family: Custom-Calibri;">.</div>
   </body>
 </html>

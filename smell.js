@@ -5,11 +5,20 @@ var rootGDocUrl = "http://docs-proxy.cmucreatelab.org/spreadsheets/d";
 var ratingColors = ["green", "#f8e540", "#da8800", "#b00404", "black-red"];
 var tweleveHoursInSecs = 43200;
 var smellReporterArray = [];
+var commentDataByRating = {
+    "1" : [],
+    "2" : [],
+    "3" : [],
+    "4" : [],
+    "5" : []
+  };
 var commentData = [];
-var commentDataByRating;
 var smellReportPrependText = " out of 5 rating. ";
 var gwtPopUpText = "";
 var isHighlighting = false;
+var numLoadedSmellReports = 0;
+var numSmellReports = 0;
+var smellLoadingInterval = null;
 
 var smellData = {
   "LA": {
@@ -46,28 +55,7 @@ var smellData = {
     data: {
       timestamps: {}
     }
-  },
-  "MB": {
-    id: "",
-    gid: "",
-    data: {
-      timestamps: {}
-    }
-  },
-  "AT": {
-    id: "",
-    gid: "",
-    data: {
-      timestamps: {}
-    }
-  },
-  "KG": {
-    id: "",
-    gid: "",
-    data: {
-      timestamps: {}
-    }
-  },
+  }
 };
 
 function initSmells() {
@@ -82,8 +70,9 @@ function initSmells() {
   smellCanvasLayer = new CanvasLayer(smellCanvasLayerOptions);
   smellCanvasContext = smellCanvasLayer.canvas.getContext('2d');
   smellReporterArray = Object.keys(smellData);
+  numSmellReports = smellReporterArray.length;
 
-  for (var i = 0; i < smellReporterArray.length; i++) {
+  for (var i = 0; i < numSmellReports; i++) {
     (function(i){
       var smellReports = smellData[smellReporterArray[i]];
       if (!smellReports.id) return;
@@ -91,6 +80,7 @@ function initSmells() {
         url: rootGDocUrl + "/" + smellReports.id + "/export?format=tsv&id=" + smellReports.id + "&gid=" + smellReports.gid,
         success: function(json) {
           parseGDocCSV(smellReports, json);
+          numLoadedSmellReports++;
         }
       });
     })(i);
@@ -108,7 +98,7 @@ function parseGDocCSV(smellReports, csvData) {
     smellReports.data.timestamps[epochTime] = {
       rating: csvLineAsArray[1],
       notes: csvLineAsArray[2].trim(),
-      latLng: (csvLineAsArray[csvLineAsArray.length - 1] ? csvLineAsArray[csvLineAsArray.length - 1] : headingsArray[headingsArray.length - 1])
+      latLng: (csvLineAsArray[csvLineAsArray.length - 1].trim() ? csvLineAsArray[csvLineAsArray.length - 1] : headingsArray[headingsArray.length - 1])
     };
   }
 }
@@ -156,180 +146,180 @@ function sortingFunction(a, b) {
 }
 
 function addSmellReportsToGrapher() {
-  commentDataByRating = {
-    "1" : [],
-    "2" : [],
-    "3" : [],
-    "4" : [],
-    "5" : []
-  };
-  commentData = [];
+  var smellPlotIndex = 0;
+  series[smellPlotIndex] = {};
+  series[smellPlotIndex].id = smellPlotIndex;
 
-  for (var i = 0; i < smellReporterArray.length; i++) {
-    var smellReports = smellData[smellReporterArray[i]].data.timestamps;
-    if (!smellReports) continue;
-    for (var timestamp in smellReports) {
-      var mean = 1;
-      // TODO: Deal with comment overlaps
-      //var dataPoint = findPoint(timestamp);
-      //if (dataPoint) mean = 1.1
-      var notes = smellReports[timestamp].rating + smellReportPrependText + smellReports[timestamp].notes;
-      var dataObj = [timestamp, mean, 0, 1, ((new Date(timestamp * 1000)).toTimeString().substring(0,8)) + " - " + notes, smellReports[timestamp].latLng];
-      commentDataByRating[smellReports[timestamp].rating].push(dataObj);
-      commentData.push(dataObj);
-    }
-  }
+  smellLoadingInterval = window.setInterval(function() {
+    if (numSmellReports != numLoadedSmellReports) return;
 
-  commentData.sort(sortingFunction);
+    window.clearInterval(smellLoadingInterval);
+    smellLoadingInterval = null;
 
-  // Add chart
-  var i = series.length;
-  series[i] = {};
-  series[i].id = i;
-  var commentNumberAxis;
-  var plots = [];
-  var lastHighlightDate = null;
-
-  for (var rating in commentDataByRating) {
-    (function(rating){
-      commentDataByRating[rating].sort(sortingFunction);
-
-      var commentDatasource = function(level, offset, successCallback) {
-        var json = {
-           "fields" : ["time", "mean", "stddev", "count", "comment"],
-           "level" : level,
-           "offset" : offset,
-           "sample_width" : Math.pow(2, level),
-           "data" : commentDataByRating[rating],
-           "type" : "value"
-        };
-        successCallback(JSON.stringify(json));
-      };
-
-      if ($(".annotationChart").length === 0) {
-        var row = $('<tr class="annotationChart grapher_row"></tr>');
-        row.append('<td id="series' + i + '" class="annotationContent"></td>');
-        row.append('<td class="annotationChartTitle" style="color: black; background:white">Smell Reports</td>');
-        row.append('<td id="series' + i + 'axis" class="annotationChartAxis" style="display: none"></td>');
-        $('#dateAxisContainer').after(row);
-        commentNumberAxis = new NumberAxis('series' + i + 'axis', "vertical");
+    for (var i = 0; i < smellReporterArray.length; i++) {
+      var smellReports = smellData[smellReporterArray[i]].data.timestamps;
+      if (!smellReports) continue;
+      for (var timestamp in smellReports) {
+        var mean = 1;
+        // TODO: Deal with comment overlaps
+        //var dataPoint = findPoint(timestamp);
+        //if (dataPoint) mean = 1.1
+        var notes = smellReports[timestamp].rating + smellReportPrependText + smellReports[timestamp].notes;
+        var dataObj = [timestamp, mean, 0, 1, ((new Date(timestamp * 1000)).toTimeString().substring(0,8)) + " - " + notes, smellReports[timestamp].latLng];
+        commentDataByRating[smellReports[timestamp].rating].push(dataObj);
+        commentData.push(dataObj);
       }
+    }
 
-      series[i].axis = commentNumberAxis;
+    commentData.sort(sortingFunction);
 
-      var plot = new DataSeriesPlot(commentDatasource, dateAxis, series[i].axis, {});
+    // Add chart
+    var commentNumberAxis;
+    var plots = [];
+    var lastHighlightDate = null;
 
-      plot.addDataPointListener(function(pointData, event) {
-        isHighlighting = false;
-        if (pointData && event && event.actionName == "highlight") {
-          isHighlighting = true;
-          lastHighlightDate = pointData.date;
-        } else if (event && event.actionName == "click") {
-          if (lastHighlightDate !== pointData.date) return;
-          fixedCursorPosition = lastHighlightDate;
-          gwtPopUpText = pointData.comment;
-          var selectedPoint = findPoint(pointData.date);
-          if (selectedPoint) {
-            var latLngArray = selectedPoint[selectedPoint.length - 1].split(",");
-            var latLng = new google.maps.LatLng(latLngArray[0], latLngArray[1]);
-            map.panTo(latLng);
-            map.setZoom(14);
-          }
-          var pointDataDateObj = new Date(pointData.dateString.split(".")[0]);
-          var commentDate = $.datepicker.formatDate('yy-mm-dd', pointDataDateObj);
-          if (commentDate != currentDate) {
-            var path = cached_breathecam.datasets[commentDate];
-            var currentView = timelapse.getView();
-            currentDate = commentDate;
-            timelapse.loadTimelapse(path, currentView, null, null, pointDataDateObj, function() {
+    for (var rating in commentDataByRating) {
+      (function(rating){
+        commentDataByRating[rating].sort(sortingFunction);
+
+        var commentDatasource = function(level, offset, successCallback) {
+          var json = {
+             "fields" : ["time", "mean", "stddev", "count", "comment"],
+             "level" : level,
+             "offset" : offset,
+             "sample_width" : Math.pow(2, level),
+             "data" : commentDataByRating[rating],
+             "type" : "value"
+          };
+          successCallback(JSON.stringify(json));
+        };
+
+        if ($(".annotationChart").length === 0) {
+          var row = $('<tr class="annotationChart grapher_row"></tr>');
+          row.append('<td id="series' + smellPlotIndex + '" class="annotationContent"></td>');
+          row.append('<td class="annotationChartTitle" style="color: black; background:white">Smell Reports</td>');
+          row.append('<td id="series' + smellPlotIndex + 'axis" class="annotationChartAxis" style="display: none"></td>');
+          $('#dateAxisContainer').after(row);
+          commentNumberAxis = new NumberAxis('series' + smellPlotIndex + 'axis', "vertical");
+        }
+
+        series[smellPlotIndex].axis = commentNumberAxis;
+
+        var plot = new DataSeriesPlot(commentDatasource, dateAxis, series[smellPlotIndex].axis, {});
+
+        plot.addDataPointListener(function(pointData, event) {
+          isHighlighting = false;
+          if (pointData && event && event.actionName == "highlight") {
+            isHighlighting = true;
+            lastHighlightDate = pointData.date;
+          } else if (event && event.actionName == "click") {
+            if (lastHighlightDate !== pointData.date) return;
+            fixedCursorPosition = lastHighlightDate;
+            gwtPopUpText = pointData.comment;
+            var selectedPoint = findPoint(pointData.date);
+            if (selectedPoint) {
+              var latLngArray = selectedPoint[selectedPoint.length - 1].split(",");
+              var latLng = new google.maps.LatLng(latLngArray[0], latLngArray[1]);
+              map.panTo(latLng);
+              map.setZoom(14);
+            }
+            var pointDataDateObj = new Date(pointData.dateString.split(".")[0]);
+            var commentDate = $.datepicker.formatDate('yy-mm-dd', pointDataDateObj);
+            if (commentDate != currentDate) {
+              var path = cached_breathecam.datasets[commentDate];
+              var currentView = timelapse.getView();
+              currentDate = commentDate;
+              timelapse.loadTimelapse(path, currentView, null, null, pointDataDateObj, function() {
+                var closestDesiredFrame = timelapse.findExactOrClosestCaptureTime(pointData.dateString, "up");
+                timelapse.seekToFrame(closestDesiredFrame);
+              });
+              $("#datepicker").datepicker("setDate", pointDataDateObj);
+            } else {
               var closestDesiredFrame = timelapse.findExactOrClosestCaptureTime(pointData.dateString, "up");
               timelapse.seekToFrame(closestDesiredFrame);
-            });
-            $("#datepicker").datepicker("setDate", pointDataDateObj);
-          } else {
-            var closestDesiredFrame = timelapse.findExactOrClosestCaptureTime(pointData.dateString, "up");
-            timelapse.seekToFrame(closestDesiredFrame);
+            }
           }
-        }
-      });
-
-      var ratingColor = ratingColors[rating - 1];
-      var pointFill, pointColor;
-      if (ratingColor == "black-red") {
-        pointFill = "black";
-        pointColor = "red";
-      } else {
-        pointFill = ratingColor;
-        pointColor = ratingColor;
-      }
-
-      var cursorColor = (plots.length > 0) ? "rgba(0,0,0,0)" : "#2A2A2A";
-      plot.setStyle({
-        "cursor" : {
-          "color" : cursorColor,
-          "lineWidth" : 1
-        },
-        "styles" : [
-          {
-             "type" : "point",
-             "color" : pointFill,
-             "fillColor" : pointColor,
-             "radius" : 7,
-             "fill" : true
-          }
-        ],
-        "comments" : {
-          "show" : true,
-          "styles" : [
-             {
-                "type" : "point",
-                "lineWidth" : 2,
-                "radius" : 2,
-                "fill" : true,
-                "color" : pointFill,
-                "fillColor" : pointFill,
-                "show" : true
-             }
-          ]
-        },
-        "highlight" : {
-          "lineWidth" : 2,
-          "styles" : [
-             {
-                "type" : "point",
-                "color" : pointColor,
-                "fillColor" : pointFill,
-                "radius" : 10,
-                "fill" : true
-             }
-          ]
-        }
-      });
-      plots.push(plot);
-      series[i].p = plots;
-    })(rating);
-  }
-
-  series[i].pc = new PlotContainer("series" + i, false, plots);
-  setSizes();
-  // Boo, grapher hacks abound...
-
-  var handleGWTPopup = function() {
-    var $gwtPopupPanels = $(".gwt-PopupPanel");
-    if ($gwtPopupPanels.length > 0) {
-      if (!isHighlighting && $gwtPopupPanels.length == 1) {
-        gwtPopUpText = $gwtPopupPanels.text();
-      }
-      if ($gwtPopupPanels.length == 2 || fixedCursorPosition < dateAxis.getMin() || fixedCursorPosition > dateAxis.getMax()) {
-        $gwtPopupPanels.each(function() {
-          if ($(this).text() == gwtPopUpText)
-            $(this).hide();
         });
-      }
+
+        var ratingColor = ratingColors[rating - 1];
+        var pointFill, pointColor;
+        if (ratingColor == "black-red") {
+          pointFill = "black";
+          pointColor = "red";
+        } else {
+          pointFill = ratingColor;
+          pointColor = ratingColor;
+        }
+
+        var cursorColor = (plots.length > 0) ? "rgba(0,0,0,0)" : "#2A2A2A";
+        plot.setStyle({
+          "cursor" : {
+            "color" : cursorColor,
+            "lineWidth" : 1
+          },
+          "styles" : [
+            {
+               "type" : "point",
+               "color" : pointFill,
+               "fillColor" : pointColor,
+               "radius" : 7,
+               "fill" : true
+            }
+          ],
+          "comments" : {
+            "show" : true,
+            "styles" : [
+               {
+                  "type" : "point",
+                  "lineWidth" : 2,
+                  "radius" : 2,
+                  "fill" : true,
+                  "color" : pointFill,
+                  "fillColor" : pointFill,
+                  "show" : true
+               }
+            ]
+          },
+          "highlight" : {
+            "lineWidth" : 2,
+            "styles" : [
+               {
+                  "type" : "point",
+                  "color" : pointColor,
+                  "fillColor" : pointFill,
+                  "radius" : 10,
+                  "fill" : true
+               }
+            ]
+          }
+        });
+        plots.push(plot);
+        series[smellPlotIndex].p = plots;
+      })(rating);
     }
+
+    series[smellPlotIndex].pc = new PlotContainer("series" + smellPlotIndex, false, plots);
+    setSizes();
+    repaintSmellCanvasLayer();
+
+    // Boo, grapher hacks abound...
+    var handleGWTPopup = function() {
+      var $gwtPopupPanels = $(".gwt-PopupPanel");
+      if ($gwtPopupPanels.length > 0) {
+        if (!isHighlighting && $gwtPopupPanels.length == 1) {
+          gwtPopUpText = $gwtPopupPanels.text();
+        }
+        if ($gwtPopupPanels.length == 2 || fixedCursorPosition < dateAxis.getMin() || fixedCursorPosition > dateAxis.getMax()) {
+          $gwtPopupPanels.each(function() {
+            if ($(this).text() == gwtPopUpText)
+              $(this).hide();
+          });
+        }
+      }
+      window.requestAnim(handleGWTPopup);
+    };
     window.requestAnim(handleGWTPopup);
-  };
-  window.requestAnim(handleGWTPopup);
+  }, 100);
 }
 
 function findPoint(searchElement) {
@@ -353,6 +343,9 @@ function findPoint(searchElement) {
 
 function repaintSmellCanvasLayer() {
   //console.log('draw smells');
+
+  if (!timelapse) return;
+
   var captureTime = timelapse.getCurrentCaptureTime();
 
   if (!captureTime) return;
