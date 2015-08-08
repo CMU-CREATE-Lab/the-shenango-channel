@@ -577,8 +577,10 @@
                 fixedCursorPosition = Date.parse(timelapse.getCurrentCaptureTime().replace(/-/g, "/")) / 1000;
                 dateAxis.setCursorPosition(fixedCursorPosition);
               }
-              repaintCanvasLayer();
-              repaintSmellCanvasLayer();
+              if (canvasLayer)
+                repaintCanvasLayer();
+              if (smellCanvasLayer)
+                repaintSmellCanvasLayer();
             });
             // Override the hashchange event
             window.onhashchange = null;
