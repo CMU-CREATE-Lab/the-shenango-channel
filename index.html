@@ -835,7 +835,6 @@
             }, 150);
           });
           dateAxis.setMaxRange(null, endTime);
-          setGraphTimeRange(pageLoadDate);
           addSmellReportsToGrapher();
           if (timelapse) {
             var currentCaptureTime = timelapse.getCurrentCaptureTime();
@@ -850,6 +849,8 @@
         if (endTime > dateAxis.getMax()) {
           dateAxis.setMaxRange(null, endTime);
         }
+
+        setGraphTimeRange(pageLoadDate);
 
         // Add charts
         var seriesIdx = series.length;
@@ -1188,7 +1189,7 @@
         <iframe id="google-doc" src="http://explorables.cmucreatelab.org/the-shenango-channel2/google-docs.php" width="100%" height="1000px" style="border: 0px;"></iframe>
       </div>
       <div id="tabs-2" style="width: 100%; height: 100%; margin: 0; padding: 0px">
-        <div id="foo" style="height: calc(100% - 33px)">
+        <div id="foo" style="height: calc(100% - 35px)">
           <div id="container">
             <div id="loading">
               <img id="loadingImg" src="assets/images/loading.gif" width="358" height="250" alt="loading">
