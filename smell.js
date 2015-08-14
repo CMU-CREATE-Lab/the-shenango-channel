@@ -309,7 +309,7 @@ function addSmellReportsToGrapher() {
         if (!isHighlighting && $gwtPopupPanels.length == 1) {
           gwtPopUpText = $gwtPopupPanels.text();
         }
-        if ($gwtPopupPanels.length == 2 || fixedCursorPosition < dateAxis.getMin() || fixedCursorPosition > dateAxis.getMax()) {
+        if ($gwtPopupPanels.length == 2 || fixedCursorPosition < dateAxis.getMin() || fixedCursorPosition > dateAxis.getMax() || $("#tabs").tabs('option', 'active') == 0) {
           $gwtPopupPanels.each(function() {
             if ($(this).text() == gwtPopUpText)
               $(this).hide();
