@@ -42,13 +42,13 @@ var smellData = {
       timestamps: {}
     }
   },
-  "CH": {
+  /*"CH": {
     id: "1x6nSP8Xojtn_HsHlHTE5SfqPZrLHLTGBSnK44dgBlmE",
     gid: "913518689",
     data: {
       timestamps: {}
     }
-  },
+  },*/
   "DW": {
     id: "1FyAUwPOquvM_Aqp4WhzuxvavXcfae92DkiPki3X2VBQ",
     gid: "550601991",
