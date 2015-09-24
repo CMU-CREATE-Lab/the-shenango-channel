@@ -184,6 +184,48 @@
         border-left: 1px solid #9C9494 !important;
       }
 
+      #tutorialDialog {
+        width: 100%;
+        height: 100%;
+        display: none;
+        overflow: hidden;
+      }
+
+      .tutorialButton {
+        position: absolute !important;
+        height: 41px !important;
+        top: 25px !important;
+        width: 109px !important;
+        left: 92px !important;
+        color: white !important;
+        background: #2794DD !important;
+        border: 1px solid #656565 !important;
+        border-radius: 3px !important;
+        box-shadow: 2px 2px 3px rgba(0,0,0,0.3) !important;
+        z-index: 9999 !important;
+        outline: none !important;
+        font-family: Arial, Helvetica, sans-serif !important;
+        font-size: 11px !important;
+      }
+
+      .tutorialButton .ui-icon.ui-icon-custom-tutorialButton {
+        background-image: none !important;
+        width: 34px !important;
+        height: 34px !important;
+        opacity: 0.55 !important;
+        background-size: contain !important;
+        margin-left: -17px !important;
+        margin-top: -17px !important;
+      }
+
+      .tutorialButton .ui-button-text {
+        margin-left: -15px !important;
+        font-size: 15px !important;
+        margin-top: 8px !important;
+        line-height: 15px!important;
+        text-align: left !important;
+      }
+
     </style>
 
     <link href="assets/timemachine-viewer/css/jquery-ui/smoothness/jquery-ui.custom.css" media="screen" rel="stylesheet" type="text/css" />
@@ -567,6 +609,7 @@
           datasetType: "breathecam",
           showThumbnailTool: true,
           onTimeMachinePlayerReady: function(viewerDivId) {
+            createTutorialButton(720, 540, "#timeMachine");
             if (canvasLayer)
               repaintCanvasLayer();
             if (smellCanvasLayer)
@@ -1082,6 +1125,44 @@
 
       $(initialize);
 
+      function createTutorialButton(buttonWidth, buttonHeight, appendingDiv) {
+        var $tutorialButton = $("<div class='tutorialButton'>Quick Tour</div>");
+        $tutorialButton.attr({"id" : "timeMachine_tutorialButton", "title" : "Click to see an instructional video on how to use Shenango Channel"});
+        $tutorialButton.button({
+          icons: {
+            primary: "ui-icon-custom-tutorialButton"
+          },
+          text: true
+        }).on("click", function() {
+          var $tourDialog = $("#tutorialDialog");
+          if ($tourDialog.dialog("isOpen")) {
+            $tourDialog.dialog("close");
+            $("#tutorialIframe").remove();
+          } else {
+            $("#tutorialDialog").append('<iframe id="tutorialIframe" src="//player.vimeo.com/video/140196813?autoplay=1" width="100%" height="100%" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>');
+            $tourDialog.dialog("open");
+          }
+        });
+        $tutorialButton.appendTo($(appendingDiv));
+
+        $("#tutorialDialog").dialog({
+          resizable: false,
+          autoOpen: false,
+          width: buttonWidth,
+          height: buttonHeight,
+          modal: true,
+          open: function( event, ui ) {
+            $(this).parent().css("top", "0px");
+            $(".ui-widget-overlay").on('click', function(){
+              $("#tutorialDialog").dialog('close');
+            });
+          },
+          close: function( event, ui ) {
+            $("#tutorialIframe").remove();
+          }
+        });
+      }
+
       function channelPageSetup() {
         // Initialize E-Cam
         var timelapseSupported = org.gigapan.Util.browserSupported();
@@ -1099,7 +1180,7 @@
         if ((!timelapseSupported || typeof (cached_breathecam) === "undefined") && stitchedImage === "") {
           // Nothing is up. Hide containers and inform the user
           $("#stitched_image_wrapper").hide();
-          $("#location_toggle").hide();
+          $("#location_toggle_container").hide();
           $("#loading").html("<div class='error_msg2'>Content currently unavailable. Please try again later.</div>");
         } else if (!timelapseSupported || typeof (cached_breathecam) === "undefined") {
           timelapseFeedUnavailable = true;
@@ -1107,9 +1188,16 @@
           // unlike when it was running on the Rails server.
           // Timelapse unavailable, show latest stitched pano
           // Calendar is gone in this mode, so move thumbnail toggles to top of page
-          $("#location_toggle").css({'top':'0px'});
-          $("#image_feed_timestamp").css({"top" : "48px", "right" : "22px"});
-          img_init();
+          //$("#location_toggle").css({'top':'0px'});
+          //$("#image_feed_timestamp").css({"top" : "48px", "right" : "22px"});
+          //img_init();
+          $("#stitched_image_wrapper").hide();
+          $("#location_toggle_container").hide();
+          $("#timelapse_feed").hide();
+          $("#grapher").hide();
+          $("#map-canvas").hide();
+          $("#tutorialDialog").hide();
+          $("#loading").html("<div class='error_msg2'>Shenango Channel is not available on mobile devices. Please use a desktop or laptop when viewing this site.</div>");
         } else {
           // Show timelapse
           tm_init();
@@ -1186,7 +1274,7 @@
         <li><a href="#tabs-2" style="outline:0;">Shenango Channel</a></li>
       </ul>
       <div id="tabs-1" style="width: 100%; padding: 0px; margin: 0;">
-        <iframe id="google-doc" src="http://explorables.cmucreatelab.org/the-shenango-channel2/google-docs.php" width="100%" height="1000px" style="border: 0px;"></iframe>
+        <iframe id="google-doc" src="http://shenangochannel.org/google-docs.php" width="100%" height="1200px" style="border: 0px;"></iframe>
       </div>
       <div id="tabs-2" style="width: 100%; height: 100%; margin: 0; padding: 0px">
         <div id="foo" style="height: calc(100% - 35px)">
@@ -1194,6 +1282,7 @@
             <div id="loading">
               <img id="loadingImg" src="assets/images/loading.gif" width="358" height="250" alt="loading">
             </div>
+            <div id="tutorialDialog"></div>
             <div id="locationTitle" class="no-select"></div>
             <div id="timelapse_feed" class="timelapse_feed_embed">
               <div id="timeMachine"></div>
