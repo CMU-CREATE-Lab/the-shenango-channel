@@ -540,6 +540,22 @@
             }
           },
           fullTimeRange: {}
+        },
+        Smoke_Detection : {
+          feed_id: 5494,
+          requested_day: {},
+          api_key: "22075ad630b1f674e7f1da7f3de77b5abeea89f95e9c6c8868eef6cf0cd312b1",
+          channels: {
+            smoke_level : {
+              show_graph: true,
+              graphMetaData : {
+                label: "Smoke Detection",
+                color: "93,93,93"
+              },
+              summary: {}
+            }
+          },
+          fullTimeRange: {}
         }
       };
 
@@ -1217,6 +1233,8 @@
 
           // Initialize Graphs
           var feedNames = Object.keys(esdr_feeds).sort();
+          feedNames.splice(feedNames.indexOf("Smoke_Detection"), 1);
+          feedNames[feedNames.length] = "Smoke_Detection";
           for (var i = 0; i < feedNames.length; i++) {
             (function(i){
               $.ajax({
