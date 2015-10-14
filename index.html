@@ -193,16 +193,16 @@
 
       .tutorialButton {
         position: absolute !important;
-        height: 41px !important;
-        top: 25px !important;
+        height: 31px !important;
+        top: 29px !important;
         width: 109px !important;
-        left: 92px !important;
+        left: 89px !important;
         color: white !important;
-        background: #2794DD !important;
-        border: 1px solid #656565 !important;
-        border-radius: 3px !important;
+        background: rgb(215,84,90) !important;
+        border: 2px solid #fff !important;
+        border-radius: 1px !important;
         box-shadow: 2px 2px 3px rgba(0,0,0,0.3) !important;
-        z-index: 9999 !important;
+        z-index: 100 !important;
         outline: none !important;
         font-family: Arial, Helvetica, sans-serif !important;
         font-size: 11px !important;
@@ -219,9 +219,9 @@
       }
 
       .tutorialButton .ui-button-text {
-        margin-left: -15px !important;
+        margin-left: -14px !important;
         font-size: 15px !important;
-        margin-top: 8px !important;
+        margin-top: 2px !important;
         line-height: 15px!important;
         text-align: left !important;
       }
@@ -230,6 +230,7 @@
 
     <link href="assets/timemachine-viewer/css/jquery-ui/smoothness/jquery-ui.custom.css" media="screen" rel="stylesheet" type="text/css" />
     <link href="assets/timemachine-viewer/css/defaultUI.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="assets/timemachine-viewer/css/timelineMetadataVisualizer.css" rel="stylesheet" type="text/css"/>
     <link href="assets/css/application.css" media="screen" rel="stylesheet" type="text/css" />
     <link href="assets/timemachine-viewer/libs/change-detect/css/change.css" media="screen" rel="stylesheet" type="text/css" />
 
@@ -245,6 +246,7 @@
     <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/snaplapseViewer.js" type="text/javascript"></script>
     <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/defaultUI.js" type="text/javascript"></script>
     <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/crossdomain_api.js" type="text/javascript"></script>
+    <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/timelineMetadataVisualizer.js" type="text/javascript"></script>
     <script src="assets/timemachine-viewer/template_includes.js" type="text/javascript"></script>
 
     <script src="assets/timemachine-viewer/libs/change-detect/js/ThumbnailServiceAPI.js" type="text/javascript"></script>
@@ -275,6 +277,7 @@
       var tmpCount = 0;
       var grapherReady = false;
       var grapherLoadedInterval = null;
+      var showSmokeDetection = false;
 
       var esdr_feeds = {
         ACHD_Avalon : {
@@ -540,8 +543,11 @@
             }
           },
           fullTimeRange: {}
-        },
-        Smoke_Detection : {
+        }
+      };
+
+      if(showSmokeDetection) {
+        esdr_feeds.Smoke_Detection = {
           feed_id: 5494,
           requested_day: {},
           api_key: "22075ad630b1f674e7f1da7f3de77b5abeea89f95e9c6c8868eef6cf0cd312b1",
@@ -556,8 +562,8 @@
             }
           },
           fullTimeRange: {}
-        }
-      };
+        };
+      }
 
       function tm_init() {
         selectTimelapseFeed();
@@ -624,7 +630,14 @@
           showLogoOnDefaultUI: false,
           datasetType: "breathecam",
           showThumbnailTool: true,
+          enableTimelineMetadataVisualizer: true,
           onTimeMachinePlayerReady: function(viewerDivId) {
+            if(showSmokeDetection) {
+              loadMetaData(startingDate);
+              timelapse.addDatasetLoadedListener(function() {
+                loadMetaData(currentDate);
+              });
+            }
             createTutorialButton(720, 540, "#timeMachine");
             if (canvasLayer)
               repaintCanvasLayer();
@@ -649,6 +662,7 @@
               var currentHash = timelapse.getShareView();
               var currentHashVars = org.gigapan.Util.unpackVars(currentHash);
               window.location.hash = "";
+
               if (!newHashVars) return;
 
               if ((newHashVars.d && currentHashVars.d != newHashVars.d) || (newHashVars.s && currentHashVars.s != newHashVars.s)) {
@@ -669,7 +683,7 @@
                 }
               } else {
                 // Share views
-                timelapse.loadSharedViewFromUnsafeURL(org.gigapan.Util.getUnsafeHashString());
+                timelapse.loadSharedViewFromUnsafeURL("#" + newHash);
               }
             });
             if (!hashVars) {
@@ -684,6 +698,33 @@
         timelapse = new org.gigapan.timelapse.Timelapse("timeMachine", settings);
 
         loadCalendar(startingDate);
+      }
+
+      function moveTimelineMetadataVisualizerUI() {
+        var $target = $('*[data-channel="smoke_level"]').find('div')[0];
+        $(".fastforwardButton").appendTo($target).css({
+          "position" : "relative",
+          "margin-top" : "2px"
+        });
+        $(".metadataImgsButton").appendTo($target).css({
+          "position" : "relative",
+          "margin-left" : "5px",
+          "margin-top" : "2px"
+        });
+      }
+
+      function loadMetaData(date) {
+        $.ajax({
+          dataType: "json",
+          url: "http://tiles.cmucreatelab.org/ecam/timemachines/smoke_detection/shenango1/smoke-" + date + ".json",
+          success: function(json) {
+            timelapse.getTimelineMetadataVisualizer().loadMetaData(json);
+            timelapse.getTimelineMetadataVisualizer().showControlUI();
+          },
+          error: function() {
+            timelapse.getTimelineMetadataVisualizer().hideControlUI();
+          }
+        });
       }
 
       function selectTimelapseFeed() {
@@ -926,11 +967,14 @@
           series[seriesIdx] = {};
           series[seriesIdx].id = seriesIdx;
           var row = $('<tr class="chart grapher_row"' + 'data-channel=' + channelName + '></tr>');
-          row.append('<td class="chartTitle" style="background:' + color_fill + '">' + feed.channels[channelName].graphMetaData.label + '</td>');
+          row.append('<td class="chartTitle" style="background:' + color_fill + '"><div>' + feed.channels[channelName].graphMetaData.label + '</div></td>');
           row.append('<td id="series' + seriesIdx + '" class="chartContent"></td>');
           row.append('<td id="series' + seriesIdx + 'axis" class="chartAxis"></td>');
           $('#grapher').append(row);
           series[seriesIdx].axis = new NumberAxis('series' + seriesIdx + 'axis', "vertical");
+          if(showSmokeDetection && channelName == "smoke_level") {
+            moveTimelineMetadataVisualizerUI();
+          }
         }
 
         var datasource;
@@ -1164,6 +1208,7 @@
         $("#tutorialDialog").dialog({
           resizable: false,
           autoOpen: false,
+          dialogClass: "customDialog",
           width: buttonWidth,
           height: buttonHeight,
           modal: true,
@@ -1233,8 +1278,10 @@
 
           // Initialize Graphs
           var feedNames = Object.keys(esdr_feeds).sort();
-          feedNames.splice(feedNames.indexOf("Smoke_Detection"), 1);
-          feedNames[feedNames.length] = "Smoke_Detection";
+          if(showSmokeDetection) {
+            feedNames.splice(feedNames.indexOf("Smoke_Detection"), 1);
+            feedNames[feedNames.length] = "Smoke_Detection";
+          }
           for (var i = 0; i < feedNames.length; i++) {
             (function(i){
               $.ajax({
@@ -1300,7 +1347,7 @@
             <div id="loading">
               <img id="loadingImg" src="assets/images/loading.gif" width="358" height="250" alt="loading">
             </div>
-            <div id="tutorialDialog"></div>
+            <div id="tutorialDialog" title="A Tour for the Shenango Channel"></div>
             <div id="locationTitle" class="no-select"></div>
             <div id="timelapse_feed" class="timelapse_feed_embed">
               <div id="timeMachine"></div>
@@ -1327,7 +1374,7 @@
               </a>
             </div>
           </div>
-          <div style="width:50%; height:50%; float: left"><table id="grapher" border="0" cellspacing="0" cellpadding="0"></table></div>
+          <div id="grapher_parent" style="width:50%; height:50%; float: left"><table id="grapher" border="0" cellspacing="0" cellpadding="0"></table></div>
           <div style="width:50%; height:50%; float: right"><div id="map-canvas"></div></div>
           </div>
       </div>

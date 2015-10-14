@@ -477,7 +477,7 @@ a img {
 
 #datepicker .ui-state-active {
   border: 1px solid rgb(204, 204, 204) !important;
-  background: #2794DD !important;
+  background: rgb(215,84,90) !important;
   box-shadow: 0px 0px 10px rgba(0,0,0,0.5);
 }
 
