@@ -632,12 +632,6 @@
           showThumbnailTool: true,
           enableTimelineMetadataVisualizer: true,
           onTimeMachinePlayerReady: function(viewerDivId) {
-            if(showSmokeDetection) {
-              loadMetaData(startingDate);
-              timelapse.addDatasetLoadedListener(function() {
-                loadMetaData(currentDate);
-              });
-            }
             createTutorialButton(720, 540, "#timeMachine");
             if (canvasLayer)
               repaintCanvasLayer();
@@ -700,6 +694,11 @@
         loadCalendar(startingDate);
       }
 
+      function toggleSmokeDetection() {
+        $('*[data-channel="smoke_level"]').toggle();
+        setSizes();
+      }
+
       function moveTimelineMetadataVisualizerUI() {
         var $target = $('*[data-channel="smoke_level"]').find('div')[0];
         $(".fastforwardButton").appendTo($target).css({
@@ -755,6 +754,9 @@
       }
 
       function changeLocation(locationName, newDate, newView, newTime, doLoad, callBack, newTimeAsDateObj) {
+        if (showSmokeDetection && (currentLocation != locationName)) {
+          toggleSmokeDetection();
+        }
         currentLocation = locationName;
         if (timelapseFeedUnavailable) {
           location.href = "/embeds/" + locationName;
@@ -777,11 +779,11 @@
             // If there is no timelapse object at this point, then that means that we have just arrived at the page
             // with a share link that has an invalid location name.
             // Load the timelapse with the default location specified in the .fail() callback below.
+            updateCalendarAndToggleUI(startingDate);
             if (!timelapse) {
               setupTimelapse(startingDataset, startingDate);
               return;
             }
-            updateCalendarAndToggleUI(startingDate);
             setGraphTimeRange(startingDate);
             if (doLoad) {
               if (timelapse && startingDataset) {
@@ -800,7 +802,7 @@
             }
           }).fail(function(jqXHR, textStatus, errorThrown) {
             console.log(jqXHR, textStatus, errorThrown);
-            changeLocation("heinz", null, null, null, true);
+            changeLocation("shenango1", null, null, null, true);
           });
         }
       }
@@ -972,8 +974,18 @@
           row.append('<td id="series' + seriesIdx + 'axis" class="chartAxis"></td>');
           $('#grapher').append(row);
           series[seriesIdx].axis = new NumberAxis('series' + seriesIdx + 'axis', "vertical");
-          if(showSmokeDetection && channelName == "smoke_level") {
+          if (showSmokeDetection && channelName == "smoke_level") {
             moveTimelineMetadataVisualizerUI();
+            if (currentLocation == "shenango1") {
+              loadMetaData(currentDate);
+            } else {
+              toggleSmokeDetection();
+            }
+            timelapse.addDatasetLoadedListener(function() {
+              if (currentLocation == "shenango1") {
+                loadMetaData(currentDate);
+              }
+            });
           }
         }
 
