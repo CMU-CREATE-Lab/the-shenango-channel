@@ -573,6 +573,7 @@
 
         var hash = window.location.hash.slice(1);
         hashVars = org.gigapan.Util.unpackVars(hash);
+
         var loadedTimelapse = false;
         if (hashVars) {
           if (hashVars.d) {
@@ -687,6 +688,9 @@
               timelapse.seekToFrame(fiveSecondsFromEnd);
             }
             showContent();
+            // Share view
+            var hash = window.location.hash.slice(1);
+            timelapse.loadSharedViewFromUnsafeURL("#" + hash);
           }
         };
         timelapse = new org.gigapan.timelapse.Timelapse("timeMachine", settings);
