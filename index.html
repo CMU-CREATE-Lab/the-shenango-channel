@@ -698,8 +698,13 @@
         loadCalendar(startingDate);
       }
 
-      function toggleSmokeDetection() {
-        $('*[data-channel="smoke_level"]').toggle();
+      function hideSmokeDetectionGraph() {
+        $('*[data-channel="smoke_level"]').hide();
+        setSizes();
+      }
+
+      function showSmokeDetectionGraph() {
+        $('*[data-channel="smoke_level"]').show();
         setSizes();
       }
 
@@ -716,16 +721,19 @@
         });
       }
 
-      function loadMetaData(date) {
+      function loadMetaData(date, datasetName) {
         $.ajax({
           dataType: "json",
-          url: "http://tiles.cmucreatelab.org/ecam/timemachines/smoke_detection/shenango1/smoke-" + date + ".json",
+          url: "http://tiles.cmucreatelab.org/ecam/timemachines/smoke_detection/" + datasetName + "/smoke-" + date + ".json",
           success: function(json) {
+            moveTimelineMetadataVisualizerUI();
             timelapse.getTimelineMetadataVisualizer().loadMetaData(json);
             timelapse.getTimelineMetadataVisualizer().showControlUI();
+            showSmokeDetectionGraph();
           },
           error: function() {
             timelapse.getTimelineMetadataVisualizer().hideControlUI();
+            hideSmokeDetectionGraph();
           }
         });
       }
@@ -758,9 +766,6 @@
       }
 
       function changeLocation(locationName, newDate, newView, newTime, doLoad, callBack, newTimeAsDateObj) {
-        if (showSmokeDetection && (currentLocation != locationName)) {
-          toggleSmokeDetection();
-        }
         currentLocation = locationName;
         if (timelapseFeedUnavailable) {
           location.href = "/embeds/" + locationName;
@@ -979,16 +984,10 @@
           $('#grapher').append(row);
           series[seriesIdx].axis = new NumberAxis('series' + seriesIdx + 'axis', "vertical");
           if (showSmokeDetection && channelName == "smoke_level") {
-            moveTimelineMetadataVisualizerUI();
-            if (currentLocation == "shenango1") {
-              loadMetaData(currentDate);
-            } else {
-              toggleSmokeDetection();
-            }
+            hideSmokeDetectionGraph();
+            loadMetaData(currentDate, currentLocation);
             timelapse.addDatasetLoadedListener(function() {
-              if (currentLocation == "shenango1") {
-                loadMetaData(currentDate);
-              }
+              loadMetaData(currentDate, currentLocation);
             });
           }
         }
