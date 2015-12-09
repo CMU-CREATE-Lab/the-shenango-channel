@@ -226,6 +226,34 @@
         text-align: left !important;
       }
 
+      .zoomGrapherBtn {
+        background: rgb(150,150,150) !important;
+        border-radius: 0px !important;
+        outline: none;
+        font-family: Arial, Helvetica, sans-serif !important;
+        font-size: 11px !important;
+        border: 4px solid white !important;
+      }
+
+      .zoomGrapherBtn:hover {
+        background: rgb(100,100,100) !important;
+      }
+
+      #zoomGrapherIn {
+        position: absolute;
+        top: 1px;
+        right: 0px;
+        height: 38px;
+        width: 34px;
+      }
+
+      #zoomGrapherOut {
+        position: absolute;
+        top: 35px;
+        right: 0px;
+        height: 38px;
+        width: 34px;
+      }
     </style>
 
     <link href="assets/timemachine-viewer/css/jquery-ui/smoothness/jquery-ui.custom.css" media="screen" rel="stylesheet" type="text/css" />
@@ -916,11 +944,25 @@
             max: endTime
           });
 
-          //debug
-          //console.log($("#dateAxis"));
-          //$("#dateAxis").on("mousedown", function() {
-          //  console.log("mousedown");
-          //});
+          // Create zooming buttons
+          $("#grapher").append('<button id="zoomGrapherIn" class="zoomGrapherBtn" title="Zoom in the graphs"></button>');
+          $("#grapher").append('<button id="zoomGrapherOut" class="zoomGrapherBtn" title="Zoom out the graphs"></button>');
+          $("#zoomGrapherIn").button({
+            icons: {
+              secondary: "ui-icon-custom-plus-white"
+            },
+            text: false
+          }).on("click", function() {
+            zoomGrapher(0.7);
+          });
+          $("#zoomGrapherOut").button({
+            icons: {
+              secondary: "ui-icon-custom-minus-white"
+            },
+            text: false
+          }).on("click", function() {
+            zoomGrapher(1.3);
+          });
 
           dateAxis.setCursorColor("#1A1A1A");
           dateAxis.addAxisChangeListener(function(e) {
@@ -1131,6 +1173,14 @@
           var paddedRange = paddedYAxisRange(min, max);
           series[seriesIdx].axis.setRange(paddedRange.min, paddedRange.max);
         }
+      }
+
+      function zoomGrapher(scale) {
+        var min_time = dateAxis.getMin();
+        var max_time = dateAxis.getMax();
+        var mean_time = (max_time+min_time)/2;
+        var range_half_scaled = scale*(max_time-min_time)/2;
+        dateAxis.setRange(mean_time-range_half_scaled,mean_time+range_half_scaled);
       }
 
       function paddedYAxisRange(min, max) {
