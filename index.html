@@ -915,6 +915,13 @@
             min: startTime,
             max: endTime
           });
+
+          //debug
+          //console.log($("#dateAxis"));
+          //$("#dateAxis").on("mousedown", function() {
+          //  console.log("mousedown");
+          //});
+
           dateAxis.setCursorColor("#1A1A1A");
           dateAxis.addAxisChangeListener(function(e) {
             // Boo, grapher hacks abound...
@@ -1000,6 +1007,15 @@
               dataType: "json",
               url: ESDR_API_ROOT_URL + "/feeds/" + feedAPIKey + "/channels/" + source + "/tiles/" + level + "." + offset,
               success: function(json) {
+                if(showSmokeDetection && channelName=="smoke_level") {
+                  // Set max smoke reading value
+                  var max_smoke_value = 300;
+                  for (var i=0; i<json.data.data.length; i++) {
+                    if(json.data.data[i][1]>max_smoke_value) {
+                      json.data.data[i][1] = max_smoke_value;
+                    }
+                  }
+                }
                 successCallback(JSON.stringify(json.data));
               },
               failure: failureCallback
