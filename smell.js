@@ -55,7 +55,36 @@ var smellData = {
     data: {
       timestamps: {}
     }
+  },
+  "EW": {
+    id: "1PL6ue3YiYuSrXJeqra1iuvI3HAoNs5X1tk2x4xbJGtQ",
+    gid: "252030095",
+    data: {
+      timestamps: {}
+    }
+  },
+  "DW2": {
+    id: "1uoAMZIZEpngWqJMo8PfMxzEyAj8gmJLT4wKCbjUm2ow",
+    gid: "1402053022",
+    data: {
+      timestamps: {}
+    }
+  },
+  "MR": {
+    id: "1cJP0qY62mLLpD05ABL5bbad5ODDpgQEDpdd0XDQq5kY",
+    gid: "221650555",
+    data: {
+      timestamps: {}
+    }
+  },
+  "AM": {
+    id: "1SYTcOzZy5RABaQaQEmgseFAXAvZMVtZFRGXJ8V7lEu4",
+    gid: "1311800385",
+    data: {
+      timestamps: {}
+    }
   }
+
 };
 
 function initSmells() {
