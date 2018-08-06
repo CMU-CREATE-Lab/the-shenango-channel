@@ -16,8 +16,10 @@ function initMap(div) {
   var mapOptions = {
     keyboardShortcuts: false,
     scaleControl: true,
+    fullscreenControl: false,
+    streetViewControl: false,
     zoom: 13,
-    center: new google.maps.LatLng(40.495, -80.079)
+    center: new google.maps.LatLng(40.500, -80.079)
   };
   map = new google.maps.Map(document.getElementById(div), mapOptions);
 
@@ -30,6 +32,7 @@ function initMap(div) {
   };
   canvasLayer = new CanvasLayer(canvasLayerOptions);
   context = canvasLayer.canvas.getContext('2d');
+  $("#map-legend").show();
   //window.addEventListener('resize', function () { google.maps.event.trigger(map, 'resize'); }, false);
 }
 

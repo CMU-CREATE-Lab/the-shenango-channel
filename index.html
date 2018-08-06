@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>The Shenango Channel</title>
+    <title>ACCAN Camera</title>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <style type='text/css'>
       html, body {
@@ -10,6 +10,7 @@
         min-width: 770px;
         min-height: 745px;
         margin: 0;
+        overflow: hidden;
       }
 
       #page_container {
@@ -74,7 +75,7 @@
 
       #dateAxisContainer {
         width: 100%;
-        height: 39px;
+        height: 67px;
         position: relative;
       }
 
@@ -83,14 +84,14 @@
         right: 250px;
         left: 159px;
         top: 0px;
-        height: 38px;
+        height: 66px;
         border: 1px solid black;
         width: 100%;
         background: white;
       }
 
       .chart {
-        height: auto;
+        height: 100%;
         background: #4f5457 !important;
       }
 
@@ -161,23 +162,28 @@
         border: 0px;
       }
 
-      .ui-tabs-nav {
+      #tabs .ui-tabs-nav {
         border: 0px !important;
+        border-bottom: 1px solid grey !important;
         background: #9A9A9A !important;
         border-radius: 0px !important;
         font-size: 15px !important;
         padding: 0px !important;
       }
 
-      .ui-tabs-nav .ui-state-default {
+      #tabs .ui-tabs-nav .ui-state-default {
         background: #E2E2E2 !important;
+        border-top: 0px !important;
+        border-left: 0px !important;
+        border-bottom: 1px solid grey !important;
       }
 
-      .ui-tabs-nav .ui-tabs-active {
+      #tabs .ui-tabs-nav .ui-tabs-active {
         background: white  !important;
+        border-bottom: 0px !important;
       }
 
-      .ui-tabs-nav li {
+      #tabs .ui-tabs-nav li {
         margin: 0px 0px -1px 0px !important;
         border-right: 1px solid #9C9494 !important;
         border-top: 1px solid #9C9494 !important;
@@ -242,17 +248,17 @@
       #zoomGrapherIn {
         position: absolute;
         top: 1px;
-        right: 0px;
-        height: 38px;
-        width: 34px;
+        right: -1px;
+        height: 34px;
+        width: 35px;
       }
 
       #zoomGrapherOut {
         position: absolute;
-        top: 35px;
-        right: 0px;
-        height: 38px;
-        width: 34px;
+        top: 31px;
+        right: -1px;
+        height: 34px;
+        width: 35px;
       }
 
       #tab3-intro-text {
@@ -267,27 +273,67 @@
         text-align: center;
       }
 
-      #flickr-feed {
-        width: 100%;
-        height: 550px;
+      .ui-button .ui-icon.ui-icon-custom-plus-white {
+        left: 16px !important;
+        top: 15px !important;
+        width: 12px !important;
+        height: 12px !important;
       }
 
-      .galleria-info-link {
+      .ui-button .ui-icon.ui-icon-custom-minus-white {
+        left: 16px !important;
+        top: 16px !important;
+        width: 12px !important;
+        height: 12px !important;
+      }
+
+      #map-legend {
         display: none;
+        position: absolute;
+        width: 150px;
+        height: 36px;
+        background-color: rgba(255, 255, 255, 0.7);
+        z-index: 9000;
+        margin-top: 56px;
+        margin-left: 11px;
+        padding: 5px;
       }
 
-      .galleria-theme-classic .galleria-info-text {
+      .map-legend-title {
         display: block;
+        padding-bottom: 6px;
+        text-decoration: underline;
+        font-weight: bold
       }
 
-      .galleria-theme-classic .galleria-info {
-        width: 200px;
+      .map-legend-wind {
+        width: 50px;
+        height: 3px;
+        background-color: blue;
+        display: inline-block;
+        position: absolute;
+        bottom: 10px;
+        right: 12px;
       }
 
-      #galleria {
-        height: 550px;
+      .ui-dialog-title {
+        top: 10px !important;
+        font-size: 15p !important;
       }
 
+      .customDialog .ui-dialog-titlebar-close {
+        width: 27px !important;
+        height: 29px !important;
+        right: 2px !important;
+      }
+
+      .customDialog .ui-dialog-titlebar {
+        height: 36px !important;
+      }
+
+      .customDialog .accordion {
+        margin-top: 15px !important;
+      }
     </style>
 
     <link href="assets/timemachine-viewer/css/jquery-ui/smoothness/jquery-ui.custom.css" media="screen" rel="stylesheet" type="text/css" />
@@ -317,16 +363,13 @@
     <script src="assets/timemachine-viewer/libs/change-detect/js/BoxEventHandler.js" type="text/javascript"></script>
     <script src="assets/timemachine-viewer/libs/change-detect/js/ChangeDetectionTool.js" type="text/javascript"></script>
 
-    <script src="http://tiles.cmucreatelab.org/ecam/timemachines/shenango1/shenango1.js" type="text/javascript"></script>
+    <script src="https://tiles.cmucreatelab.org/ecam/timemachines/accan1/accan1.js" type="text/javascript"></script>
     <script src="assets/js/jquery.xdomainrequest.min.js" type="text/javascript"></script>
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUI99vwj93ewio28mDIfHlAF5J06SajZY"></script>
     <script src="assets/grapher/grapher2.nocache.js" type="text/javascript"></script>
     <script src="map.js"></script>
-    <script src="smell.js"></script>
+    <!-- <script src="smell.js"></script> -->
     <script src="assets/data-visualization-tools/js/CanvasLayer.js"></script>
-
-    <script src="assets/galleria/galleria-1.5.7.min.js"></script>
-    <script src="assets/galleria/plugins/flickr/galleria.flickr.min.js"></script>
 
     <script>
       "use strict";
@@ -335,15 +378,14 @@
       var currentDate = (new Date());
       var currentDateString = currentDate.getFullYear() + "-" + padDigits((currentDate.getMonth() + 1), 2) + "-" + padDigits(currentDate.getDate(), 2);
       var series = [];
-      var currentLocation = "shenango1";
+      var currentLocation = "accan1";
       var currentDate;
-      var ESDR_API_ROOT_URL = 'http://esdr.cmucreatelab.org/api/v1';
+      var ESDR_API_ROOT_URL = 'https://esdr.cmucreatelab.org/api/v1';
       var clampTimeout = null;
       var fixedCursorPosition;
       var tmpCount = 0;
       var grapherReady = false;
       var grapherLoadedInterval = null;
-      var showSmokeDetection = true;
 
       var esdr_feeds = {
         ACHD_Avalon : {
@@ -398,260 +440,8 @@
             }
           },
           fullTimeRange: {}
-        },
-        Speck1 : {
-          feed_id: 5332,
-          coordinates : {
-            latitude: 40.499767,
-            longitude: -80.068
-          },
-          requested_day: {},
-          api_key: "b05e15a31711c80542d3db0fc3f5e63590638052ffa121732df9c776316c5d89",
-          channels: {
-            particle_concentration : {
-              show_graph: true,
-              graphMetaData : {
-                label: "Avalon Speck - <br> PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
-                color: "127, 57, 148"
-              },
-              summary: {}
-            }
-          },
-          fullTimeRange: {}
-        },
-        Speck1b : {
-          feed_id: 5333,
-          coordinates : {
-            latitude: 40.499767,
-            longitude: -80.068
-          },
-          isDouble: true,
-          requested_day: {},
-          api_key: "d4f535777752957c32a004d89a8c7136b95c7330dd66e9a6f65e2bd9e665bc38",
-          channels: {
-            particle_concentration : {
-              show_graph: true,
-              graphMetaData : {
-                label: "Avalon Speck - <br> PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
-                color: "127, 57, 148"
-              },
-              summary: {}
-            }
-          },
-          fullTimeRange: {}
-        },
-        Speck2 : {
-          feed_id: 4617,
-          coordinates : {
-            latitude: 40.501,
-            longitude: -80.061
-          },
-          requested_day: {},
-          api_key: "3c9286797e517dacd885309bb8e88a1309a9bdd0e7655bcfa1c47fa47f7c7b76",
-          channels: {
-            particle_concentration : {
-              show_graph: true,
-              graphMetaData : {
-                label: "Bellevue Speck - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
-                color: "27, 141, 52"
-              },
-              summary: {}
-            }
-          },
-          fullTimeRange: {}
-        },
-        Speck2b : {
-          feed_id: 4711,
-          coordinates : {
-            latitude: 40.501,
-            longitude: -80.061
-          },
-          isDouble: true,
-          requested_day: {},
-          api_key: "39c80375a56564c06c9faea157aeeecdded2ac5bc2cc14c812cab23682af16f4",
-          channels: {
-            particle_concentration : {
-              show_graph: true,
-              graphMetaData : {
-                label: "Bellevue Speck 2 - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
-                color: "27, 141, 52"
-              },
-              summary: {}
-            }
-          },
-          fullTimeRange: {}
-        },
-        Speck3 : {
-          feed_id: 4316,
-          coordinates : {
-            latitude: 40.508,
-            longitude: -80.076
-          },
-          requested_day: {},
-          api_key: "02e22d5b3a81370d60d265d9ae9e61e1ddbb276f5aafe894c5f7de424e849147",
-          channels: {
-            particle_concentration : {
-              show_graph: true,
-              graphMetaData : {
-                label: "Ben Avon Speck - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
-                color: "230, 120, 26"
-              },
-              summary: {}
-            }
-          },
-          fullTimeRange: {}
-        },
-        Speck3b : {
-          feed_id: 4616,
-          coordinates : {
-            latitude: 40.508,
-            longitude: -80.076
-          },
-          isDouble: true,
-          requested_day: {},
-          api_key: "6371248f9710d694e92591f4f44ff339bf40907d3faf34e5ad85f2e69483fd74",
-          channels: {
-            particle_concentration : {
-              show_graph: true,
-              graphMetaData : {
-                label: "Ben Avon Speck 2 - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
-                color: "230, 120, 26"
-              },
-              summary: {}
-            }
-          },
-          fullTimeRange: {}
-        },
-        ACHD_North_Braddock : {
-          feed_id: 3,
-          coordinates : {
-            latitude: 40.402,
-            longitude: -79.860
-          },
-          requested_day: {},
-          api_key: "3c607ed62b70fd874e62c8aea4c40811398c6ddcf5dc3e15edfc4cda4dc256d6",
-          channels: {
-            "SONICWS_MPH": {
-              show_graph: false,
-              hourly : true,
-              summary: {}
-            },
-            "SONICWD_DEG": {
-              show_graph: false,
-              hourly : true,
-              summary: {}
-            }
-          },
-          fullTimeRange: {}
-        },
-        ACHD_Lawrenceville : {
-          feed_id: 26,
-          coordinates : {
-            latitude: 40.465,
-            longitude: -79.960
-          },
-          requested_day: {},
-          api_key: "01aceb2dd35a61aadb5992292ee7cc34ec8d044ccf8d49b4b24c9c335476616c",
-          channels: {
-            "SONICWS_MPH": {
-              show_graph: false,
-              hourly : true,
-              summary: {}
-            },
-            "SONICWD_DEG": {
-              show_graph: false,
-              hourly : true,
-              summary: {}
-            }
-          },
-          fullTimeRange: {}
-        },
-        ACHD_Parkway_East : {
-          feed_id: 43,
-          coordinates : {
-            latitude: 40.437,
-            longitude: -79.863
-          },
-          requested_day: {},
-          api_key: "bf61b67e0b93d612dacf8f9f034fba75da9141046df38fd058b44fdb1076ab9f",
-          channels: {
-            "SONICWS_MPH": {
-              show_graph: false,
-              hourly : true,
-              summary: {}
-            },
-            "SONICWD_DEG": {
-              show_graph: false,
-              hourly : true,
-              summary: {}
-            }
-          },
-          fullTimeRange: {}
-        },
-        ACHD_Liberty : {
-          feed_id: 28,
-          coordinates : {
-            latitude: 40.323,
-            longitude: -79.868
-          },
-          requested_day: {},
-          api_key: "ce7e8af4e53980642fd0249808af4f55bcfb00744207106a5b000119a0c5e189",
-          channels: {
-            "SONICWS_MPH": {
-              show_graph: false,
-              hourly : true,
-              summary: {}
-            },
-            "SONICWD_DEG": {
-              show_graph: false,
-              hourly : true,
-              summary: {}
-            }
-          },
-          fullTimeRange: {}
-        },
-        ACHD_South_Fayette : {
-          feed_id: 32,
-          coordinates : {
-            latitude: 40.375,
-            longitude: -80.169
-          },
-          requested_day: {},
-          api_key: "fd7a17dee775a42a97a0a87d9ba504a172e1fe46b466f8ae2972df1dcf105b7c",
-          channels: {
-            "SONICWS_MPH": {
-              show_graph: false,
-              hourly : true,
-              summary: {}
-            },
-            "SONICWD_DEG": {
-              show_graph: false,
-              hourly : true,
-              summary: {}
-            }
-          },
-          fullTimeRange: {}
         }
       };
-
-      if (showSmokeDetection) {
-        esdr_feeds.Smoke_Detection = {
-          feed_id: 5494,
-          requested_day: {},
-          api_key: "22075ad630b1f674e7f1da7f3de77b5abeea89f95e9c6c8868eef6cf0cd312b1",
-          channels: {
-            smoke_level : {
-              show_graph: true,
-              graphMetaData : {
-                label: "Smoke Detection",
-                color: "93,93,93"
-              },
-              summary: {}
-            }
-          },
-          fullTimeRange: {}
-        };
-      }
 
       function tm_init() {
         selectTimelapseFeed();
@@ -685,29 +475,9 @@
         }
 
         // If we did not load the timelapse with the hash vars above, do so now.
-        if (!loadedTimelapse)
+        if (!loadedTimelapse) {
           setupTimelapse(initialDataset, startingDate);
-      }
-
-      function img_init() {
-        zoomify = new org.gigapan.zoomify({
-          onImageReady: function(imgId) {
-            showContent();
-            if (!$("#timelapse_feed").is(':visible')) {
-              selectImageFeed();
-            }
-          }
-        });
-
-        $("#stitched_image").load(function() {
-          zoomify.makeImageZoomable("stitched_image");
-        });
-
-        $("#stitched_image").bind("mouseover mouseup", function() {
-          $(this).removeClass("openHand closedHand").addClass("openHand");
-        }).bind("mousedown", function() {
-          $(this).removeClass("openHand closedHand").addClass("closedHand");
-        });
+        }
       }
 
       function setupTimelapse(initialDataset, startingDate) {
@@ -721,11 +491,11 @@
           showThumbnailTool: true,
           enableTimelineMetadataVisualizer: true,
           onTimeMachinePlayerReady: function(viewerDivId) {
-            createTutorialButton(720, 540, "#timeMachine");
+            //createTutorialButton(720, 540, "#timeMachine");
             if (canvasLayer)
               repaintCanvasLayer();
-            if (smellCanvasLayer)
-              repaintSmellCanvasLayer();
+            //if (smellCanvasLayer)
+            //  repaintSmellCanvasLayer();
             // Time Machine Listeners
             timelapse.addTimeChangeListener(function(videoTime) {
               if (dateAxis) {
@@ -734,8 +504,8 @@
               }
               if (canvasLayer)
                 repaintCanvasLayer();
-              if (smellCanvasLayer)
-                repaintSmellCanvasLayer();
+              //if (smellCanvasLayer)
+              //  repaintSmellCanvasLayer();
             });
             // Override the hashchange event
             window.onhashchange = null;
@@ -744,7 +514,7 @@
               var newHashVars = org.gigapan.Util.unpackVars(newHash);
               var currentHash = timelapse.getShareView();
               var currentHashVars = org.gigapan.Util.unpackVars(currentHash);
-              window.location.hash = "";
+              //window.location.hash = "";
 
               if (!newHashVars) return;
 
@@ -786,65 +556,13 @@
         loadCalendar(startingDate);
       }
 
-      function hideSmokeDetectionGraph() {
-        $('*[data-channel="smoke_level"]').hide();
-        setSizes();
-      }
-
-      function showSmokeDetectionGraph() {
-        $('*[data-channel="smoke_level"]').show();
-        setSizes();
-      }
-
-      function moveTimelineMetadataVisualizerUI() {
-        var $target = $('*[data-channel="smoke_level"]').find('div')[0];
-        $(".fastforwardButton").appendTo($target).css({
-          "position" : "relative",
-          "margin-top" : "2px"
-        });
-        $(".metadataImgsButton").appendTo($target).css({
-          "position" : "relative",
-          "margin-left" : "5px",
-          "margin-top" : "2px"
-        });
-      }
-
-      function loadMetaData(date, datasetName) {
-        $.ajax({
-          dataType: "json",
-          url: "http://tiles.cmucreatelab.org/ecam/timemachines/smoke_detection/" + datasetName + "/smoke-" + date + ".json",
-          success: function(json) {
-            moveTimelineMetadataVisualizerUI();
-            timelapse.getTimelineMetadataVisualizer().loadMetaData(json);
-            timelapse.getTimelineMetadataVisualizer().showControlUI();
-            showSmokeDetectionGraph();
-          },
-          error: function() {
-            timelapse.getTimelineMetadataVisualizer().hideControlUI();
-            hideSmokeDetectionGraph();
-          }
-        });
-      }
-
       function selectTimelapseFeed() {
-        $("#image_feed").css("visibility", "hidden");
-        $("#stitched_image_wrapper").css("visibility", "hidden");
-        $("#stitched_image").css("visibility", "hidden");
         $("#timelapse_feed").show();
         setLocationTitle();
       }
 
-      function selectImageFeed() {
-        $("#timelapse_feed").hide();
-        $("#image_feed").css("visibility", "visible");
-        $("#stitched_image_wrapper").css("visibility", "visible");
-        $("#stitched_image").css("visibilriity", "visible");
-        $("#location_toggle_container").css("top", "0px");
-        setLocationTitle();
-      }
-
       function setLocationTitle() {
-        var locationTitle = $("#location_toggle_container .location_thumbnail_selected").siblings(".location_title").text();
+        var locationTitle = "Emsworth"; //$("#location_toggle_container .location_thumbnail_selected").siblings(".location_title").text();
         $("#locationTitle").text(locationTitle);
       }
 
@@ -859,7 +577,7 @@
           location.href = "/embeds/" + locationName;
         } else {
           $.ajax({
-            url: "http://tiles.cmucreatelab.org/ecam/timemachines/" + locationName + "/" + locationName + ".json",
+            url: "https://tiles.cmucreatelab.org/ecam/timemachines/" + locationName + "/" + locationName + ".json",
             dataType: "json"
           }).done(function(data) {
             cached_breathecam = data;
@@ -899,7 +617,7 @@
             }
           }).fail(function(jqXHR, textStatus, errorThrown) {
             console.log(jqXHR, textStatus, errorThrown);
-            changeLocation("shenango1", null, null, null, true);
+            changeLocation("accan1", null, null, null, true);
           });
         }
       }
@@ -1058,7 +776,7 @@
             }, 150);
           });
           dateAxis.setMaxRange(null, endTime);
-          addSmellReportsToGrapher();
+          //addSmellReportsToGrapher();
           if (timelapse) {
             var currentCaptureTime = timelapse.getCurrentCaptureTime();
             if (currentCaptureTime) {
@@ -1079,15 +797,8 @@
         var seriesIdx = series.length;
         var color_line = "rgb(" + feed.channels[channelName].graphMetaData.color + ")";
         var color_fill = "rgba(" + feed.channels[channelName].graphMetaData.color + ",1)";
-
         if (feed.feed_id == 1 && channelName == "PM25T_UG_M3") {
-          seriesIdx = 1;
-        } else if (feed.feed_id == 5333) {
-          seriesIdx = 2;
-        } else if (feed.feed_id == 4711) {
-          seriesIdx = 3;
-        } else if (feed.feed_id == 4616) {
-          seriesIdx = 4;
+          seriesIdx = 0;
         } else {
           series[seriesIdx] = {};
           series[seriesIdx].id = seriesIdx;
@@ -1097,13 +808,6 @@
           row.append('<td id="series' + seriesIdx + 'axis" class="chartAxis"></td>');
           $('#grapher').append(row);
           series[seriesIdx].axis = new NumberAxis('series' + seriesIdx + 'axis', "vertical");
-          if (showSmokeDetection && channelName == "smoke_level") {
-            hideSmokeDetectionGraph();
-            loadMetaData(currentDate, currentLocation);
-            timelapse.addDatasetLoadedListener(function() {
-              loadMetaData(currentDate, currentLocation);
-            });
-          }
         }
 
         var datasource;
@@ -1114,15 +818,6 @@
               dataType: "json",
               url: ESDR_API_ROOT_URL + "/feeds/" + feedAPIKey + "/channels/" + source + "/tiles/" + level + "." + offset,
               success: function(json) {
-                if(showSmokeDetection && channelName=="smoke_level") {
-                  // Set max smoke reading value
-                  var max_smoke_value = 300;
-                  for (var i=0; i<json.data.data.length; i++) {
-                    if(json.data.data[i][1]>max_smoke_value) {
-                      json.data.data[i][1] = max_smoke_value;
-                    }
-                  }
-                }
                 successCallback(JSON.stringify(json.data));
               },
               failure: failureCallback
@@ -1275,8 +970,8 @@
         dateAxis.setSize(dateAxisWidth, dateAxisHeight, SequenceNumber.getNext());
         for (var i = 0; i < series.length; i++) {
           var newHeight = $('.chart').height();
-          if (i === 0)
-            newHeight = $('.annotationContent').height();
+          //if (i === 0)
+          //  newHeight = $('.annotationContent').height();
           if (series[i].axis)
             series[i].axis.setSize($('#series' + i + 'axis').width(), newHeight, SequenceNumber.getNext());
           if (series[i].pc)
@@ -1293,50 +988,52 @@
         dateAxis.setRange(dayStart, dayEnd);
       }
 
-      function initialize() {
-
-        // Load the classic theme
-        Galleria.loadTheme('assets/galleria/themes/classic/galleria.classic.min.js');
-
-        // Initialize Galleria
-        Galleria.run('#galleria', {
-            /* ACCAN user ID */
-            flickr: 'user:158676524@N07',
-            flickrOptions: {
-                sort: 'date-taken-desc'
-            }
-        });
-
-        $( "#tabs" ).tabs({
-          heightStyle: "content",
-          activate: function(event, ui) {
-            if ($(ui.newPanel)[0].id == "tabs-2") {
-              $("body, html").css("overflow", "hidden");
-              if (!timelapse) {
-                channelPageSetup();
-                $(window).resize(function() {
-                  setSizes();
-                  google.maps.event.trigger(map, 'resize');
-                });
-              } else {
-                timelapse.onresize();
-              }
+      function handleTabActivate(ui) {
+        var panel = ui.newPanel || ui.panel;
+        if ($(panel)[0].id == "camera-feed") {
+          $("body, html").css("overflow", "hidden");
+          if (!timelapse) {
+            channelPageSetup();
+            $(window).resize(function() {
               setSizes();
               google.maps.event.trigger(map, 'resize');
+            });
+          } else {
+            timelapse.onresize();
+          }
+          setSizes();
+          google.maps.event.trigger(map, 'resize');
+        } else {
+          //$("body, html").css("overflow", "auto");
+          // Hack for Chrome when switching tabs:
+          // Gifs stop animating unless the page changes size
+          if (tmpCount % 2 === 0)
+            $("#google-doc").width("99.9%");
+          else
+            $("#google-doc").width("100%");
+          tmpCount++;
+        }
+      }
+
+      function initialize() {
+        $("#tabs").tabs({
+          heightStyle: "content",
+          create: function(event, ui) {
+            handleTabActivate(ui)
+          },
+          beforeActivate: function (event, ui) {
+            if (ui.newPanel.selector == "#camera-feed" && window.location.hash.indexOf("v=") >= 0) {
+              // do nothing
             } else {
-              $("body, html").css("overflow", "auto");
-              // Hack for Chrome when switching tabs:
-              // Gifs stop animating unless the page changes size
-              if (tmpCount % 2 === 0)
-                $("#google-doc").width("99.9%");
-              else
-                $("#google-doc").width("100%");
-              tmpCount++;
+              window.location.hash = ui.newPanel.selector;
             }
+          },
+          activate: function(event, ui) {
+            handleTabActivate(ui);
           }
         });
-        if (window.location.hash.indexOf("#v=") > -1)
-          $( "#tabs" ).tabs( "option", "active", 1 );
+        if (window.location.hash.indexOf("v=") > -1)
+          $("#tabs").tabs( "option", "active", 1 );
       }
 
       window.grapherLoad = function() {
@@ -1345,7 +1042,7 @@
 
       $(initialize);
 
-      function createTutorialButton(buttonWidth, buttonHeight, appendingDiv) {
+      /*function createTutorialButton(buttonWidth, buttonHeight, appendingDiv) {
         var $tutorialButton = $("<div class='tutorialButton'>Quick Tour</div>");
         $tutorialButton.attr({"id" : "timeMachine_tutorialButton", "title" : "Watch an instructional video on how to use Shenango Channel"});
         $tutorialButton.button({
@@ -1382,13 +1079,13 @@
             $("#tutorialIframe").remove();
           }
         });
-      }
+      }*/
 
       function channelPageSetup() {
         // Initialize E-Cam
         var timelapseSupported = org.gigapan.Util.browserSupported();
         var stitchedImage = "N/A";
-        locationDivId = "shenango1" + "_overlay";
+        locationDivId = "accan1" + "_overlay";
         setLocationThumbnailToggle();
         $(".location_thumbnail_container").on("click", function() {
           if (window.location.hash)
@@ -1400,25 +1097,16 @@
         });
         if ((!timelapseSupported || typeof (cached_breathecam) === "undefined") && stitchedImage === "") {
           // Nothing is up. Hide containers and inform the user
-          $("#stitched_image_wrapper").hide();
           $("#location_toggle_container").hide();
           $("#loading").html("<div class='error_msg2'>Content currently unavailable. Please try again later.</div>");
         } else if (!timelapseSupported || typeof (cached_breathecam) === "undefined") {
           timelapseFeedUnavailable = true;
-          // TODO: Image feed is not working since the-shenango-channel currently does not have a way to get the latest image,
-          // unlike when it was running on the Rails server.
-          // Timelapse unavailable, show latest stitched pano
-          // Calendar is gone in this mode, so move thumbnail toggles to top of page
-          //$("#location_toggle").css({'top':'0px'});
-          //$("#image_feed_timestamp").css({"top" : "48px", "right" : "22px"});
-          //img_init();
-          $("#stitched_image_wrapper").hide();
           $("#location_toggle_container").hide();
           $("#timelapse_feed").hide();
           $("#grapher").hide();
           $("#map-canvas").hide();
           $("#tutorialDialog").hide();
-          $("#loading").html("<div class='error_msg2'>Shenango Channel is not available on mobile devices. Please use a desktop or laptop when viewing this site.</div>");
+          $("#loading").html("<div class='error_msg2'>Timelapse mode is not available on your device. Please use a desktop or laptop when viewing this site.</div>");
         } else {
           // Show timelapse
           tm_init();
@@ -1434,14 +1122,10 @@
           grapherLoadedInterval = null;
 
           // Initialize Smells
-          initSmells();
+          //initSmells();
 
           // Initialize Graphs
           var feedNames = Object.keys(esdr_feeds).sort();
-          if(showSmokeDetection) {
-            feedNames.splice(feedNames.indexOf("Smoke_Detection"), 1);
-            feedNames[feedNames.length] = "Smoke_Detection";
-          }
           for (var i = 0; i < feedNames.length; i++) {
             (function(i){
               $.ajax({
@@ -1483,70 +1167,57 @@
         };
 
     </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-10682694-23"></script>
     <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-      ga('create', 'UA-10682694-14', 'auto');
-      ga('send', 'pageview');
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-10682694-23');
     </script>
   </head>
   <body style="height: 100%">
     <div id="tabs" style="width: 100%; height: 100%; margin: 0; padding: 0px; position: absolute;">
       <ul>
-        <li><a href="#tabs-1" style="outline:0;">Introduction by ACCAN</a></li>
-        <li><a href="#tabs-2" style="outline:0;">Shenango Channel Archive</a></li>
-        <li><a href="#tabs-3" style="outline:0;">Road to Revitalization</a></li>
+        <li><a href="#intro" style="outline:0;">Introduction</a></li>
+        <li><a href="#camera-feed" style="outline:0;">Emsworth Live Camera</a></li>
+        <li><a href="#latest-findings" style="outline:0;">Latest Camera Findings</a></li>
+        <li><a href="#blog" style="outline:0;">Blog</a></li>
       </ul>
-      <div id="tabs-1" style="width: 100%; padding: 0px; margin: 0;">
-        <iframe id="google-doc" src="http://shenangochannel.org/google-docs.php" width="100%" height="1200px" style="border: 0px;"></iframe>
+      <div id="intro" style="width: 100%; padding: 0px; margin: 0;">
+        <iframe id="google-doc" src="introduction.php" style="overflow:hidden; display:block; position: absolute; height: calc(100% - 35px); width: 100%; border: 0px;"></iframe>
       </div>
-      <div id="tabs-2" style="width: 100%; height: 100%; margin: 0; padding: 0px">
-        <div id="foo" style="height: calc(100% - 35px)">
+      <div id="camera-feed" style="width: 100%; height: 100%; margin: 0; padding: 0px">
+        <div style="height: calc(100% - 35px)">
           <div id="container">
             <div id="loading">
               <img id="loadingImg" src="assets/images/loading.gif" width="358" height="250" alt="loading">
             </div>
-            <div id="tutorialDialog" title="A Tour for the Shenango Channel"></div>
+            <!-- <div id="tutorialDialog" title="A Tour"></div> -->
             <div id="locationTitle" class="no-select"></div>
             <div id="timelapse_feed" class="timelapse_feed_embed">
               <div id="timeMachine"></div>
               <div id="datepicker" class="datepicker_embed no-select"></div>
             </div>
-            <div id="image_feed" class="image_feed_embed no-select">
-              <div id="stitched_image_wrapper" class="image-zoom-wrapper image-zoom-wrapper-embed">
-                <div id="zoom-in" title="Zoom in"><p>+</p></div>
-                <div id="zoom-out" title="Zoom out"><p>_</p></div>
-                <img id="stitched_image" class="image-zoom" src="#" alt="Latest Stitch">
-                <span id="image_feed_timestamp">03/09/2015 03:16 PM</span>
-              </div>
-            </div>
-            <div id="location_toggle_container" class="no-select">
-              <a class="location_thumbnail_container" data-location-id="shenango1" href="javascript:void(0)">
-                <div id="shenango1_overlay" class="location_thumbnail_overlay"></div>
-                <img src="assets/images/shenango1.png" class="location_thumbnail" alt="Shenango1">
-                <div class="location_title">ACCAN Camera (Avalon)</div>
-              </a>
-              <a class="location_thumbnail_container location_thumbnail_container_end" data-location-id="shenango2" href="javascript:void(0)">
-                <div id="shenango2_overlay" class="location_thumbnail_overlay"></div>
-                <img src="assets/images/shenango2.png" class="location_thumbnail" alt="Shenango2">
-                <div class="location_title">ACHD Camera (Bellevue)</div>
-              </a>
-            </div>
           </div>
-          <div id="grapher_parent" style="width:50%; height:50%; float: left"><table id="grapher" border="0" cellspacing="0" cellpadding="0"></table></div>
-          <div style="width:50%; height:50%; float: right"><div id="map-canvas"></div></div>
+          <div id="grapher_parent" style="width:50%; height:25%; float: left">
+            <table id="grapher" border="0" cellspacing="0" cellpadding="0"></table>
           </div>
+          <div id="map_parent" style="width:50%; height:25%; float: right">
+            <div id="map-legend">
+              <div class="map-legend-title">Legend:</div>
+              Wind Direction:
+              <div class="map-legend-wind"></div>
+            </div>
+            <div id="map-canvas"></div>
+          </div>
+        </div>
       </div>
-      <div id="tabs-3" style="width: 100%; height: 90%; padding: 0px; margin: 0;">
-        <h1 id="tab3-header">The Road to Revitalization</h1>
-        <p id="tab3-intro-text">
-          ACCAN remains concerned about how DTE Energy clears and remediates the Shenango Coke Works sites, since these activities can release pollutants into the air and water.
-          The Coke Works buildings contain asbestos and the soil contains still to be identified pollutants.  Posting these post closure photos on this channel is one way that we
-          continue to monitor activities on the site.
-        </p>
-        <div id="galleria" style="width: 100%; height: 550px"></div>
+      <div id="latest-findings" style="width: 100%; height: 90%; padding: 0px; margin: 0;">
+        <h1 id="tab3-header">Explore the latest findings below:</h1>
+        <iframe id="latest-findings" src="https://mon.createlab.org/latest-findings?camera_id=accan1" width="100%" height="100%" style="border: 0px;"></iframe>
+      </div>
+      <div id="blog" style="width: 100%; height: 90%; padding: 0px; margin: 0;">
+        <iframe id="blog" src="blog.php" style="overflow:hidden; display:block; position: absolute; height: calc(100% - 35px); width: 100%; border: 0px;"></iframe>
       </div>
     </div>
     <div style="font-family: Custom-Calibri;">.</div>
