@@ -10,5 +10,11 @@ $content = str_replace('https://www.google.com/url?q=', '', $content);
 $content = str_replace('&lt;/a&gt;', '</a>', $content);
 $content = str_replace('&lt;a', '<a', $content);
 $content = str_replace('&gt;', '>', $content);
+$content = str_replace('%23', '#', $content);
+$content = str_replace('%3D', '=', $content);
+$content = str_replace('%26', '&', $content);
+$content = str_replace('/&', '#', $content);
+$content = str_replace('amp;', '', $content);
+$content = str_replace('<a', '<a target="_blank"', $content);
 echo $content;
 ?>

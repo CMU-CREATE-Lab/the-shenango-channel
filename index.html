@@ -160,6 +160,7 @@
 
       #tabs {
         border: 0px;
+        position: fixed;
       }
 
       #tabs .ui-tabs-nav {
@@ -291,7 +292,7 @@
         display: none;
         position: absolute;
         width: 150px;
-        height: 36px;
+        height: 50px;
         background-color: rgba(255, 255, 255, 0.7);
         z-index: 9000;
         margin-top: 56px;
@@ -312,8 +313,18 @@
         background-color: blue;
         display: inline-block;
         position: absolute;
-        bottom: 10px;
+        bottom: 24px;
         right: 12px;
+      }
+
+      .map-legend-metalico {
+        width: 10px;
+        height: 10px;
+        background-color: red;
+        display: inline-block;
+        position: absolute;
+        bottom: 6px;
+        right: 90px;
       }
 
       .ui-dialog-title {
@@ -345,6 +356,7 @@
     <script src="assets/timemachine-viewer/js/jquery/jquery.min.js" type="text/javascript"></script>
     <script src="assets/timemachine-viewer/js/jquery/jquery-ui.custom.min.js" type="text/javascript"></script>
     <script src="assets/timemachine-viewer/js/jquery/plugins/mouse/jquery.mousewheel.min.js" type="text/javascript"></script>
+    <script src="assets/timemachine-viewer/js/downloadjs/download.min.js"></script>
     <script src="assets/timemachine-viewer/js/org/gigapan/util.js" type="text/javascript"></script>
     <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/videoset.js" type="text/javascript"></script>
     <script src="assets/timemachine-viewer/js/org/gigapan/timelapse/parabolicMotion.js" type="text/javascript"></script>
@@ -386,6 +398,9 @@
       var tmpCount = 0;
       var grapherReady = false;
       var grapherLoadedInterval = null;
+      var locationMap = {
+        "accan1" : "Emsworth"
+      };
 
       var esdr_feeds = {
         ACHD_Avalon : {
@@ -485,7 +500,7 @@
           url: initialDataset,
           disableTourLooping: true,
           mediaType: ".mp4",
-          showFullScreenBtn: false,
+          showFullScreenBtn: true,
           showLogoOnDefaultUI: false,
           datasetType: "breathecam",
           showThumbnailTool: true,
@@ -507,6 +522,8 @@
               //if (smellCanvasLayer)
               //  repaintSmellCanvasLayer();
             });
+            // Move to inside timeMachine div so it does not overlap share view box
+            $("#locationTitle").appendTo("#timeMachine .player");
             // Override the hashchange event
             window.onhashchange = null;
             $(window).on("hashchange", function() {
@@ -549,11 +566,50 @@
             // Share view
             var hash = window.location.hash.slice(1);
             timelapse.loadSharedViewFromUnsafeURL("#" + hash);
+            breatheCamThumbnailSetup();
           }
         };
         timelapse = new org.gigapan.timelapse.Timelapse("timeMachine", settings);
 
         loadCalendar(startingDate);
+      }
+
+      function breatheCamThumbnailSetup() {
+        var du = timelapse.getDefaultUI();
+        if (timelapse && du) {
+          du.addEventListener('thumbnail-generated-from-ui', function(thumbnailParams) {
+            var formattedBeginTime = thumbnailParams.beginTime.substr(0,4) + "-" + thumbnailParams.beginTime.substr(4,2) + "-" + thumbnailParams.beginTime.substr(6,2) + " " + thumbnailParams.beginTime.substr(8,2) + ":" + thumbnailParams.beginTime.substr(10,2) + ":" + thumbnailParams.beginTime.substr(12,2);
+            var formattedEndTime = thumbnailParams.endTime.substr(0,4) + "-" + thumbnailParams.endTime.substr(4,2) + "-" + thumbnailParams.endTime.substr(6,2) + " " + thumbnailParams.endTime.substr(8,2) + ":" + thumbnailParams.endTime.substr(10,2) + ":" + thumbnailParams.endTime.substr(12,2);
+            var isUTC = (timelapse.getCaptureTimes()[0].indexOf("UTC") >= 0);
+            if (!isUTC) {
+              formattedBeginTime = String(new Date(formattedBeginTime));
+              formattedEndTime = String(new Date(formattedEndTime));
+            }
+            $.ajax({
+              type: "POST",
+              dataType: "json",
+              url: "https://breathecam.cmucreatelab.org/camera_findings",
+              data: {
+                camera_finding: {
+                  camera_id : thumbnailParams.timemachineId,
+                  camera_name : locationMap[thumbnailParams.timemachineId],
+                  timemachine_path : thumbnailParams.root,
+                  media_path : thumbnailParams.url,
+                  media_format : thumbnailParams.format,
+                  media_width : thumbnailParams.width,
+                  media_height : thumbnailParams.height,
+                  comment : $("#camera-findings-comment").val(),
+                  begin_time : formattedBeginTime,
+                  end_time : formattedEndTime,
+                  start_frame : thumbnailParams.startFrame,
+                  num_frames : thumbnailParams.nframes
+                }
+              }
+            });
+          });
+        }
+        var thumbnailToolRow = $(".thumbnail-processing-time-warning").closest("tr");
+        $("<tr><td>Comments:</td><td><textarea id='camera-findings-comment' rows='4' cols='21' placeholder='Optionally enter any comments about what you found.'></textarea></td></tr>").insertBefore(thumbnailToolRow);
       }
 
       function selectTimelapseFeed() {
@@ -1008,9 +1064,9 @@
           // Hack for Chrome when switching tabs:
           // Gifs stop animating unless the page changes size
           if (tmpCount % 2 === 0)
-            $("#google-doc").width("99.9%");
+            $("#tabs").height("99.9%");
           else
-            $("#google-doc").width("100%");
+            $("#tabs").height("100%");
           tmpCount++;
         }
       }
@@ -1038,6 +1094,7 @@
 
       window.grapherLoad = function() {
         grapherReady = true;
+        $("#grapher-loader").empty();
       };
 
       $(initialize);
@@ -1176,7 +1233,7 @@
     </script>
   </head>
   <body style="height: 100%">
-    <div id="tabs" style="width: 100%; height: 100%; margin: 0; padding: 0px; position: absolute;">
+    <div id="tabs" style="width: 100%; height: 100%; margin: 0; padding: 0px;">
       <ul>
         <li><a href="#intro" style="outline:0;">Introduction</a></li>
         <li><a href="#camera-feed" style="outline:0;">Emsworth Live Camera</a></li>
@@ -1200,6 +1257,7 @@
             </div>
           </div>
           <div id="grapher_parent" style="width:50%; height:25%; float: left">
+            <div id="grapher-loader">Loading graphs...</div>
             <table id="grapher" border="0" cellspacing="0" cellpadding="0"></table>
           </div>
           <div id="map_parent" style="width:50%; height:25%; float: right">
@@ -1207,6 +1265,9 @@
               <div class="map-legend-title">Legend:</div>
               Wind Direction:
               <div class="map-legend-wind"></div>
+              <br>
+              Metalico:
+              <div class="map-legend-metalico"></div>
             </div>
             <div id="map-canvas"></div>
           </div>
