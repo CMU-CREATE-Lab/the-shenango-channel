@@ -163,6 +163,19 @@ function paintPM25(site, channelName, epochTime) {
   }
 }
 
+function drawPlace(lat, lng) {
+  var rectLatLng = new google.maps.LatLng(lat, lng);
+  var worldPoint = mapProjection.fromLatLngToPoint(rectLatLng);
+  var x = worldPoint.x * projectionScale;
+  var y = worldPoint.y * projectionScale;
+
+  context.fillStyle = 'red';
+  context.beginPath();
+  context.rect(x, y, 3, 3);
+  //context.arc(x, y, 1.18, 0, 2 * Math.PI, false);
+  context.fill();
+}
+
 function getData(site, channel, time) {
   //console.log('getData');
 
@@ -226,14 +239,8 @@ function repaintCanvasLayer() {
     var epochTime = (new Date((timelapse.getCurrentCaptureTime()).replace(/-/g,"/")).getTime()) / 1000;
 
     paintPM25(esdr_feeds.ACHD_Avalon, 'PM25B_UG_M3', epochTime);
-    paintPM25(esdr_feeds.ACHD_North_Braddock, 'PM25B_UG_M3', epochTime);
-    paintPM25(esdr_feeds.ACHD_Lawrenceville, 'PM25B_UG_M3', epochTime);
-    paintPM25(esdr_feeds.ACHD_Parkway_East, 'PM25B_UG_M3', epochTime);
-    paintPM25(esdr_feeds.ACHD_Liberty, 'PM25B_UG_M3', epochTime);
-    paintPM25(esdr_feeds.ACHD_South_Fayette, 'PM25B_UG_M3', epochTime);
-    paintPM25(esdr_feeds.Speck1, 'particle_concentration', epochTime);
-    paintPM25(esdr_feeds.Speck2, 'particle_concentration', epochTime);
-    paintPM25(esdr_feeds.Speck3, 'particle_concentration', epochTime);
+    // Draw Metalico plant
+    drawPlace(40.506795, -80.105922);
   } catch(e) {
     //console.log(e);
   }
