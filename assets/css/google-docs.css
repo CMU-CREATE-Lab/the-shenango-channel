@@ -1,3 +1,6 @@
 body {
   max-width: 80% !important;
 }
+video {
+  max-width: 800px;
+}

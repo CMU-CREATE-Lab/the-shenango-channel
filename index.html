@@ -75,8 +75,10 @@
 
       #dateAxisContainer {
         width: 100%;
-        height: 67px;
-        position: relative;
+        height: 43px;
+        position: sticky;
+        top: 0px;
+        overflow-y: auto;
       }
 
       #dateAxis {
@@ -84,14 +86,15 @@
         right: 250px;
         left: 159px;
         top: 0px;
-        height: 66px;
+        height: 42px;
         border: 1px solid black;
         width: 100%;
         background: white;
       }
 
       .chart {
-        height: 100%;
+        height: auto;
+        min-height: 60px;
         background: #4f5457 !important;
       }
 
@@ -239,7 +242,7 @@
         outline: none;
         font-family: Arial, Helvetica, sans-serif !important;
         font-size: 11px !important;
-        border: 4px solid white !important;
+        border: 3px solid white !important;
       }
 
       .zoomGrapherBtn:hover {
@@ -248,18 +251,18 @@
 
       #zoomGrapherIn {
         position: absolute;
-        top: 1px;
-        right: -1px;
-        height: 34px;
-        width: 35px;
+        top: 0px;
+        right: 2px;
+        height: 24px;
+        width: 30px;
       }
 
       #zoomGrapherOut {
         position: absolute;
-        top: 31px;
-        right: -1px;
-        height: 34px;
-        width: 35px;
+        top: 19px;
+        right: 2px;
+        height: 24px;
+        width: 30px;
       }
 
       #tab3-intro-text {
@@ -276,16 +279,16 @@
 
       .ui-button .ui-icon.ui-icon-custom-plus-white {
         left: 16px !important;
-        top: 15px !important;
-        width: 12px !important;
-        height: 12px !important;
+        top: 11px !important;
+        width: 9px !important;
+        height: 9px !important;
       }
 
       .ui-button .ui-icon.ui-icon-custom-minus-white {
         left: 16px !important;
-        top: 16px !important;
-        width: 12px !important;
-        height: 12px !important;
+        top: 13px !important;
+        width: 9px !important;
+        height: 9px !important;
       }
 
       #map-legend {
@@ -327,28 +330,12 @@
         right: 90px;
       }
 
-      .ui-dialog-title {
-        top: 10px !important;
-        font-size: 15p !important;
-      }
-
-      .customDialog .ui-dialog-titlebar-close {
-        width: 27px !important;
-        height: 29px !important;
-        right: 2px !important;
-      }
-
-      .customDialog .ui-dialog-titlebar {
-        height: 36px !important;
-      }
-
-      .customDialog .accordion {
-        margin-top: 15px !important;
-      }
     </style>
 
-    <link href="assets/timemachine-viewer/css/jquery-ui/smoothness/jquery-ui.custom.css" media="screen" rel="stylesheet" type="text/css" />
-    <link href="assets/timemachine-viewer/css/defaultUI.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="assets/timemachine-viewer//css/jquery-ui/smoothness/jquery-ui.custom.css" media="screen" rel="stylesheet" type="text/css" />
+
+    <link href="assets/timemachine-viewer//css/defaultUI.css" media="screen" rel="stylesheet" type="text/css" />
+
     <link href="assets/timemachine-viewer/css/timelineMetadataVisualizer.css" rel="stylesheet" type="text/css"/>
     <link href="assets/css/application.css" media="screen" rel="stylesheet" type="text/css" />
     <link href="assets/timemachine-viewer/libs/change-detect/css/change.css" media="screen" rel="stylesheet" type="text/css" />
@@ -412,7 +399,7 @@
           api_key: "8a2ce5c845ca323d80056aefd564f6f7305724a0476318e488c5ea380094ebc2",
           requested_day: {},
           channels : {
-            "PM25B_UG_M3": {
+            "PM25_640_UG_M3": {
               show_graph: true,
               hourly : true,
               graphMetaData : {
@@ -455,7 +442,58 @@
             }
           },
           fullTimeRange: {}
-        }
+        },
+        RAMP_EMSWORTH : {
+          feed_id: 26012,
+          coordinates : {
+            latitude: 40.51,
+            longitude: -80.105
+          },
+          api_key: "14e59760790b93a833a2edb0b9990d20e23bf8da10237516794dba7c2549318e",
+          requested_day: {},
+          channels : {
+            "PM025": {
+              show_graph: true,
+              hourly : false,
+              graphMetaData : {
+                label: "Emsworth (v4) RAMP - PM<sub>2.5</sub>, &mu;g/m<sup>3</sup>",
+                color: "20,104,177"
+              },
+              summary: {}
+            },
+            "CO": {
+              show_graph: true,
+              hourly : false,
+              graphMetaData : {
+                label: "Emsworth (v4) RAMP - CO, ppb</sup>",
+                color: "127, 57, 148"
+              },
+              summary: {}
+            }
+          },
+          fullTimeRange: {}
+        },
+        VOC_EMSWORTH : {
+          feed_id: 37731,
+          coordinates : {
+            latitude: 40.511429,
+            longitude: -80.100966
+          },
+          api_key: "e47b385c87950b7c4b92ce8fb1e4b18b9953c34b494384c4bbc348aca1a98d7e",
+          requested_day: {},
+          channels : {
+            "tVOC_internal_0": {
+              show_graph: true,
+              hourly : false,
+              graphMetaData : {
+                label: "Emsworth tVOC, ppb",
+                color: "230, 120, 26"
+              },
+              summary: {}
+            }
+          },
+          fullTimeRange: {}
+        },
       };
 
       function tm_init() {
@@ -496,14 +534,21 @@
       }
 
       function setupTimelapse(initialDataset, startingDate) {
+        initialDataset = initialDataset.replace("http:", "https:");
         var settings = {
           url: initialDataset,
           disableTourLooping: true,
           mediaType: ".mp4",
           showFullScreenBtn: true,
+          showShareBtn: true,
           showLogoOnDefaultUI: false,
           datasetType: "breathecam",
           showThumbnailTool: true,
+          thumbnailsSupportStartEndTimes: true,
+          sideControlsInfo: {
+            position: "top-left",
+            showHomeBtn: true,
+          },
           enableTimelineMetadataVisualizer: true,
           onTimeMachinePlayerReady: function(viewerDivId) {
             //createTutorialButton(720, 540, "#timeMachine");
@@ -549,6 +594,7 @@
                   changeLocation(currentLocation, newDate, newView, newTime, true);
                 } else {
                   updateCalendarAndToggleUI(newDate);
+                  newDataset = newDataset.replace("http:", "https:");
                   timelapse.loadTimelapse(newDataset, newView, newTime, false);
                 }
               } else {
@@ -659,6 +705,7 @@
             if (doLoad) {
               if (timelapse && startingDataset) {
                 newTime = parseFloat(newTime);
+                startingDataset = startingDataset.replace("http:", "https:");
                 timelapse.loadTimelapse(startingDataset, newView, newTime, false, newTimeAsDateObj, function() {
                   if (!newTimeAsDateObj && isNaN(newTime)) {
                     var numFrames = timelapse.getNumFrames();
@@ -713,6 +760,7 @@
           $(".gwt-PopupPanel").remove();
           currentDate = date;
           setGraphTimeRange(date);
+          path = path.replace("http:", "https:");
           timelapse.loadTimelapse(path, null, null, true);
         }
       }
@@ -782,8 +830,8 @@
           });
 
           // Create zooming buttons
-          $("#grapher").append('<button id="zoomGrapherIn" class="zoomGrapherBtn" title="Zoom in the graphs"></button>');
-          $("#grapher").append('<button id="zoomGrapherOut" class="zoomGrapherBtn" title="Zoom out the graphs"></button>');
+          $("#dateAxisContainer td:last").append('<button id="zoomGrapherIn" class="zoomGrapherBtn" title="Zoom in the graphs"></button>');
+          $("#dateAxisContainer td:last").append('<button id="zoomGrapherOut" class="zoomGrapherBtn" title="Zoom out the graphs"></button>');
           $("#zoomGrapherIn").button({
             icons: {
               secondary: "ui-icon-custom-plus-white"
@@ -853,6 +901,7 @@
         var seriesIdx = series.length;
         var color_line = "rgb(" + feed.channels[channelName].graphMetaData.color + ")";
         var color_fill = "rgba(" + feed.channels[channelName].graphMetaData.color + ",1)";
+        // These checks are for "double" graph, where we need to combine them into the same one
         if (feed.feed_id == 1 && channelName == "PM25T_UG_M3") {
           seriesIdx = 0;
         } else {
@@ -891,6 +940,7 @@
             if (commentDate != currentDate) {
               var path = cached_breathecam.datasets[commentDate];
               if (!path) return;
+              path = path.replace("http:", "https:");
               var currentView = timelapse.getView();
               currentDate = commentDate;
               timelapse.loadTimelapse(path, currentView, null, null, pointDataDateObj);
@@ -1256,11 +1306,11 @@
               <div id="datepicker" class="datepicker_embed no-select"></div>
             </div>
           </div>
-          <div id="grapher_parent" style="width:50%; height:25%; float: left">
+          <div id="grapher_parent" style="width:50%; height:35%; float: left">
             <div id="grapher-loader">Loading graphs...</div>
             <table id="grapher" border="0" cellspacing="0" cellpadding="0"></table>
           </div>
-          <div id="map_parent" style="width:50%; height:25%; float: right">
+          <div id="map_parent" style="width:50%; height:35%; float: right">
             <div id="map-legend">
               <div class="map-legend-title">Legend:</div>
               Wind Direction:
