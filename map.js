@@ -16,6 +16,8 @@ function initMap(div) {
   var mapOptions = {
     keyboardShortcuts: false,
     scaleControl: true,
+    fullscreenControl: false,
+    streetViewControl: false,
     zoom: 13,
     center: new google.maps.LatLng(40.495, -80.079)
   };

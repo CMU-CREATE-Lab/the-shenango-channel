@@ -1,0 +1,19 @@
+.galleria-info-link {
+  display: none;
+}
+
+.galleria-theme-classic .galleria-info-text {
+  display: block;
+}
+
+.galleria-theme-classic .galleria-info {
+  width: 200px;
+}
+
+#galleria {
+  height: 550px;
+}
+
+body {
+  height: 550px;
+}
